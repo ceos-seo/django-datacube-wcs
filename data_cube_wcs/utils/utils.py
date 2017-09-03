@@ -29,4 +29,4 @@ def update_coverages():
     ]].to_dict('records')
 
     for model in list_of_dicts:
-        CoverageOffering.objects.update_or_create(**list_of_dicts)
+        CoverageOffering.objects.update_or_create(**model)

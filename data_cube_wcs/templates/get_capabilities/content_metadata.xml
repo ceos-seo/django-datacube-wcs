@@ -5,10 +5,10 @@
       <name>{{ coverage_offering.name }}</name>
       <label>{{ coverage_offering.label }}</label>
       <lonLatEnvelope srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
-        <gml:pos>{{ coverage_offering.min }}</gml:pos>
-        <gml:pos>{{ coverage_offering.max }}</gml:pos>
-        <gml:timePosition>{{ coverage_offering.start_time }}</gml:timePosition>
-        <gml:timePosition>{{ coverage_offering.end_time }}</gml:timePosition>
+        <gml:pos>{{ coverage_offering.get_min_point }}</gml:pos>
+        <gml:pos>{{ coverage_offering.get_max_point }}</gml:pos>
+        <gml:timePosition>{{ coverage_offering.get_start_time }}</gml:timePosition>
+        <gml:timePosition>{{ coverage_offering.get_end_time }}</gml:timePosition>
       </lonLatEnvelope>
     </CoverageOfferingBrief>
   {% endfor %}
