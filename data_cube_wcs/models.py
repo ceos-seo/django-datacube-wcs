@@ -1,5 +1,7 @@
 from django.db import models
 
+from utils import data_access_api
+
 
 class CoverageOffering(models.Model):
     """Contains all information required for formatting coverage offering xml responses"""
@@ -29,3 +31,7 @@ class CoverageOffering(models.Model):
     def get_end_time(self):
         """Get a iso8601 formatted datetime"""
         return self.end_time.isoformat()
+
+    def get_temporal_domain(self):
+        with data_access_api.DataAccessApi() as dc:
+            return map(lambda d: d.isoformat(), dc.list_acquisition_dates(self.name))

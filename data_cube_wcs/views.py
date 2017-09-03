@@ -121,6 +121,11 @@ class DescribeCoverage(View):
             Validated coverage description document
 
         """
+        coverages = models.CoverageOffering.objects.all()
+        if 'COVERAGE' in request.GET:
+            coverages = models.CoverageOffering.objects.filter(name__in=request.GET.get('COVERAGE').split(","))
+            if not coverages:
+                coverages = models.CoverageOffering.objects.all()
 
         response = render_to_response('DescribeCoverage.xml', {})
         response['Content-Type'] = 'text/xml; charset=UTF-8;'

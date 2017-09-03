@@ -38,6 +38,12 @@ class DataAccessApi:
     def close(self):
         self.dc.close()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.dc.close()
+
     """
     query params are defined in datacube.api.query
     """

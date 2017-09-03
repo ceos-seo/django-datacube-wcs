@@ -1,5 +1,7 @@
 from django import forms
 
+from . import models
+
 
 class BaseRequestForm(forms.Form):
     """Base WCS request parameters as defined by the OGC WCS 1.0 specification"""
@@ -25,7 +27,7 @@ class GetCapabilitiesForm(BaseRequestForm):
 
 class DescribeCoverageForm(BaseRequestForm):
     """DescribeCoverage request form as defined by the OGC WCS 1.0 specification"""
-    COVERAGE = forms.CharField()
+    COVERAGE = forms.ModelMultipleChoiceField(queryset=models.CoverageOffering.objects.all(), to_field_name='name')
 
 
 class GetCoverageForm(BaseRequestForm):
