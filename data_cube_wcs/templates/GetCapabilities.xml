@@ -7,5 +7,11 @@
    xmlns:gml="http://www.opengis.net/gml"
    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
    xsi:schemaLocation="http://www.opengis.net/wcs http://schemas.opengis.net/wcs/1.0.0/wcsCapabilities.xsd">
-   
+   {% if section %}
+      {% include section %}
+   {% else %}
+      {% include "get_capabilities/service.xml" %}
+      {% include "get_capabilities/capability.xml" %}
+      {% include "get_capabilities/content_metadata.xml" %}
+   {% endif %}
 </WCS_Capabilities>

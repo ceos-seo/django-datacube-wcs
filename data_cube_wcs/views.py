@@ -2,6 +2,8 @@ from django.shortcuts import render, render_to_response
 from django.http import HttpResponse
 from django.views import View
 
+from . import forms
+
 exception_codes = [
     'InvalidFormat', 'CoverageNotDefined', 'CurrentUpdateSequence', 'InvalidUpdateSequence', 'MissingParameterValue',
     'InvalidParameterValue'
@@ -22,8 +24,17 @@ class WebService(View):
             }
         }
 
-        service = request.GET.get('SERVICE', 'WCS')
-        _request = request.GET.get('REQUEST', 'GetCapabilities')
+        base_request_form = forms.BaseRequestForm(request.GET)
+        if not base_request_form.is_valid():
+            response = render_to_response('ServiceException.xml', {
+                'exception_code': "InvalidParameterValue",
+                'error_msg': "Invalid request or service parameter."
+            })
+            response['Content-Type'] = 'text/xml; charset=UTF-8;'
+            return response
+
+        service = base_request_form.cleaned_data.get('SERVICE', 'WCS')
+        _request = base_request_form.cleaned_data.get('REQUEST', 'GetCapabilities')
 
         return view_mapping[service][_request].as_view()(request)
 
@@ -54,8 +65,27 @@ class GetCapabilities(View):
             Validated capabilities document
         """
 
+        get_capabilities_form = forms.GetCapabilitiesForm(request.GET)
+        if not get_capabilities_form.is_valid():
+            response = render_to_response('ServiceException.xml', {
+                'exception_code': "InvalidParameterValue",
+                'error_msg': "Invalid section value."
+            })
+            response['Content-Type'] = 'text/xml; charset=UTF-8;'
+            return response
+
+        section_map = {
+            "WCS_Capabilities/Service": "get_capabilities/service.xml",
+            "WCS_Capabilities/Capability": "get_capabilities/capability.xml",
+            "WCS_Capabilities/ContentMetadata": "get_capabilities/content_metadata.xml"
+        }
+
+        context = {}
+        if 'SECTION' in get_capabilities_form.cleaned_data:
+            context['section'] = section_map[get_capabilities_form.cleaned_data['SECTION']]
+
         response = render_to_response('GetCapabilities.xml', {})
-        response['Content-Type'] = 'application/vnd.ogc.se_xml;'
+        response['Content-Type'] = 'text/xml; charset=UTF-8;'
         return response
 
 
@@ -85,6 +115,9 @@ class DescribeCoverage(View):
             Validated coverage description document
 
         """
+
+        response = render_to_response('DescribeCoverage.xml', {})
+        response['Content-Type'] = 'text/xml; charset=UTF-8;'
 
 
 class GetCoverage(View):

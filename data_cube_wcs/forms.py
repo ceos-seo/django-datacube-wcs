@@ -1,46 +1,46 @@
 from django import forms
 
 
-class BaseRequest(forms.Form):
+class BaseRequestForm(forms.Form):
     """Base WCS request parameters as defined by the OGC WCS 1.0 specification"""
 
-    request = forms.ChoiceField(
+    REQUEST = forms.ChoiceField(
         choices=(("GetCapabilities", "GetCapabilities"), ("DescribeCoverage", "DescribeCoverage"),
                  ("GetCoverage", "GetCoverage")),
         initial="GetCapabilities")
-    version = forms.CharField(required=False, initial="1.0.0")
-    service = forms.ChoiceField(choies=(("WCS", "WCS")), initial="WCS")
+    VERSION = forms.CharField(required=False, initial="1.0.0")
+    SERVICE = forms.ChoiceField(choices=(("WCS", "WCS"), ("WMS", "WMS")), initial="WCS")
 
 
-class GetCapabilitiesForm(BaseRequest):
+class GetCapabilitiesForm(BaseRequestForm):
     """GetCapabilities request form as defined by the OGC WCS 1.0 specification"""
 
-    section = forms.ChoiceField(
+    SECTION = forms.ChoiceField(
         required=False,
         choices=(("WCS_Capabilities/Service", "WCS_Capabilities/Service"),
                  ("WCS_Capabilities/Capability", "WCS_Capabilities/Capability"),
                  ("WCS_Capabilities/ContentMetadata", "WCS_Capabilities/ContentMetadata")))
-    updatesequence = forms.CharField(required=False)
+    UPDATESEQUENCE = forms.CharField(required=False)
 
 
-class DescribeCoverageForm(BaseRequest):
+class DescribeCoverageForm(BaseRequestForm):
     """DescribeCoverage request form as defined by the OGC WCS 1.0 specification"""
-    coverage = forms.CharField()
+    COVERAGE = forms.CharField()
 
 
-class GetCoverageForm(BaseRequest):
+class GetCoverageForm(BaseRequestForm):
     """GetCoverage request form as defined by the OGC WCS 1.0 specification"""
-    coverage = forms.CharField()
-    crs = forms.CharField()
-    response_crs = forms.CharField()
-    bbox = forms.CharField()
-    time = forms.CharField()
-    width = forms.IntegerField()
-    height = forms.IntegerField()
-    resx = forms.FloatField()
-    resy = forms.FloatField()
+    COVERAGE = forms.CharField()
+    CRS = forms.CharField()
+    RESPONSE_CRS = forms.CharField()
+    BBOX = forms.CharField()
+    TIME = forms.CharField()
+    WIDTH = forms.IntegerField()
+    HEIGHT = forms.IntegerField()
+    RESX = forms.FloatField()
+    RESY = forms.FloatField()
 
-    interpolation = forms.ChoiceField(choices=(), initial="")
-    format = forms.ChoiceField()
-    exceptions = forms.CharField()
-    parameters = forms.CharField()
+    INTERPOLATION = forms.ChoiceField(choices=(), initial="")
+    FORMAT = forms.ChoiceField()
+    EXCEPTIONS = forms.CharField()
+    PARAMETERS = forms.CharField()
