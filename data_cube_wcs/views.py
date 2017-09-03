@@ -1,6 +1,31 @@
-from django.shortcuts import render
+from django.shortcuts import render, render_to_response
 from django.http import HttpResponse
 from django.views import View
+
+exception_codes = [
+    'InvalidFormat', 'CoverageNotDefined', 'CurrentUpdateSequence', 'InvalidUpdateSequence', 'MissingParameterValue',
+    'InvalidParameterValue'
+]
+
+
+class WebService(View):
+    """Entry point for the suite of webservice OGC implementations"""
+
+    def get(self, request):
+        """Handles the mapping of requests to the various service views based on GET parameters"""
+
+        view_mapping = {
+            'WCS': {
+                'GetCapabilities': GetCapabilities,
+                'DescribeCoverage': DescribeCoverage,
+                'GetCoverage': GetCoverage
+            }
+        }
+
+        service = request.GET.get('SERVICE', 'WCS')
+        _request = request.GET.get('REQUEST', 'GetCapabilities')
+
+        return view_mapping[service][_request].as_view()(request)
 
 
 class GetCapabilities(View):
@@ -28,6 +53,10 @@ class GetCapabilities(View):
         Returns:
             Validated capabilities document
         """
+
+        response = render_to_response('GetCapabilities.xml', {})
+        response['Content-Type'] = 'application/vnd.ogc.se_xml;'
+        return response
 
 
 class DescribeCoverage(View):
