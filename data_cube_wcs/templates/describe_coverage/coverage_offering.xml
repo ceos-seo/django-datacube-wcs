@@ -1,0 +1,62 @@
+<CoverageOffering>
+  <name>modis</name>
+  <label>North Central US MODIS Images for 2002</label>
+  <lonLatEnvelope srsName="urn:ogc:def:crs:OGC:1.3:CRS84">
+    <gml:pos>-97.7071758865421 41.0324719184183</gml:pos>
+    <gml:pos>-80.6778361148771 49.6650665681236</gml:pos>
+    <gml:timePosition>2004-04-12T13:20:00</gml:timePosition>
+    <gml:timePosition>2004-04-12T13:20:00</gml:timePosition>
+  </lonLatEnvelope>
+  <domainSet>
+    <spatialDomain>
+      <gml:Envelope srsName="EPSG:4326">
+        <gml:pos>-97.7071758865421 41.0324719184183</gml:pos>
+        <gml:pos>-80.6778361148771 49.6650665681236</gml:pos>
+      </gml:Envelope>
+    </spatialDomain>
+    <temporalDomain>
+      <gml:timePosition>list of times</gml:timePosition>
+      <timePeriod>
+        <beginPosition>iso8601</beginPosition>
+        <endPosition>iso8601</endPosition>
+      </timePeriod>
+    </temporalDomain>
+  </domainSet>
+  <rangeSet>
+    <RangeSet>
+      <name>Bands</name>
+      <label>MODIS Radiometric Bands</label>
+      <axisDescription>
+        <AxisDescription>
+          <name>bands</name>
+          <label>Bands/Channels/Samples</label>
+          <values>
+            <singleValue>1</singleValue>
+            <singleValue>2</singleValue>
+            <singleValue>3</singleValue>
+            <singleValue>4</singleValue>
+          </values>
+        </AxisDescription>
+      </axisDescription>
+      <NullValues>
+        <singleValue>1</singleValue>
+        <singleValue>2</singleValue>
+        <singleValue>3</singleValue>
+        <singleValue>4</singleValue>
+      </NullValues>
+    </RangeSet>
+  </rangeSet>
+  <supportedCRSs>
+    <requestResponseCRSs>EPSG:4326</requestResponseCRSs>
+    <nativeCRSs>EPSG:4326</nativeCRSs>
+  </supportedCRSs>
+  <supportedFormats nativeFormat="raw binary">
+    <formats>GeoTIFF</formats>
+    <formats>NetCDF</formats>
+  </supportedFormats>
+  <supportedInterpolations default="nearest neighbor">
+    <interpolationMethod>nearest neighbor</interpolationMethod>
+    <interpolationMethod>bilinear</interpolationMethod>
+    <interpolationMethod>bicubic</interpolationMethod>
+  </supportedInterpolations>
+</CoverageOffering>
