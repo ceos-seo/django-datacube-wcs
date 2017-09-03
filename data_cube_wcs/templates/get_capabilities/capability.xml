@@ -3,36 +3,36 @@
     <GetCapabilities>
       <DCPType>
         <HTTP>
-          <Get><OnlineResource xlink:type="simple" xlink:href="{{ base_url }}/wcs?" /></Get>
+          <Get><OnlineResource xlink:type="simple" xlink:href="{{ base_url }}?" /></Get>
         </HTTP>
       </DCPType>
       <DCPType>
         <HTTP>
-          <Post><OnlineResource xlink:type="simple" xlink:href="{{ base_url }}/wcs?" /></Post>
+          <Post><OnlineResource xlink:type="simple" xlink:href="{{ base_url }}?" /></Post>
         </HTTP>
       </DCPType>
     </GetCapabilities>
     <DescribeCoverage>
       <DCPType>
         <HTTP>
-          <Get><OnlineResource xlink:type="simple" xlink:href="{{ base_url }}/wcs?" /></Get>
+          <Get><OnlineResource xlink:type="simple" xlink:href="{{ base_url }}?" /></Get>
         </HTTP>
       </DCPType>
       <DCPType>
         <HTTP>
-          <Post><OnlineResource xlink:type="simple" xlink:href="{{ base_url }}/wcs?" /></Post>
+          <Post><OnlineResource xlink:type="simple" xlink:href="{{ base_url }}?" /></Post>
         </HTTP>
       </DCPType>
     </DescribeCoverage>
     <GetCoverage>
       <DCPType>
         <HTTP>
-          <Get><OnlineResource xlink:type="simple" xlink:href="{{ base_url }}/wcs?" /></Get>
+          <Get><OnlineResource xlink:type="simple" xlink:href="{{ base_url }}?" /></Get>
         </HTTP>
       </DCPType>
       <DCPType>
         <HTTP>
-          <Post><OnlineResource xlink:type="simple" xlink:href="{{ base_url }}/wcs?" /></Post>
+          <Post><OnlineResource xlink:type="simple" xlink:href="{{ base_url }}?" /></Post>
         </HTTP>
       </DCPType>
     </GetCoverage>

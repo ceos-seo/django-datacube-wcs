@@ -2,7 +2,10 @@ from django.shortcuts import render, render_to_response
 from django.http import HttpResponse
 from django.views import View
 
+import pandas as pd
+
 from . import forms
+from . import models
 
 exception_codes = [
     'InvalidFormat', 'CoverageNotDefined', 'CurrentUpdateSequence', 'InvalidUpdateSequence', 'MissingParameterValue',
@@ -80,11 +83,14 @@ class GetCapabilities(View):
             "WCS_Capabilities/ContentMetadata": "get_capabilities/content_metadata.xml"
         }
 
-        context = {}
-        if 'SECTION' in get_capabilities_form.cleaned_data:
+        context = {
+            'base_url': request.build_absolute_uri().split('?')[0],
+            'coverage_offerings': models.CoverageOffering.objects.all()
+        }
+        if 'SECTION' in get_capabilities_form.cleaned_data and get_capabilities_form.cleaned_data['SECTION']:
             context['section'] = section_map[get_capabilities_form.cleaned_data['SECTION']]
 
-        response = render_to_response('GetCapabilities.xml', {})
+        response = render_to_response('GetCapabilities.xml', context)
         response['Content-Type'] = 'text/xml; charset=UTF-8;'
         return response
 
