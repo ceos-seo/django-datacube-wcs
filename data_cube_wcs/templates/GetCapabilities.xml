@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding="UTF-8" standalone="no" ?>
+<WCS_Capabilities
+   version="1.0.0"
+   updateSequence="0"
+   xmlns="http://www.opengis.net/wcs"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:gml="http://www.opengis.net/gml"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://www.opengis.net/wcs http://schemas.opengis.net/wcs/1.0.0/wcsCapabilities.xsd">
+   
+</WCS_Capabilities>

@@ -1,0 +1,22 @@
+<Service>
+  <description>WCS connection for the Open Data Cube for use with QGIS</description>
+  <name>Data Cube WCS</name>
+  <label>ODC WCS</label>
+  <keywords>
+    <keyword>WCS</keyword>
+    <keyword>ODC</keyword>
+  </keywords>
+  <responsibleParty>
+    <individualName>Alfredo Delos Santos</individualName>
+    <organisationName>AMA/CEOS</organisationName>
+    <contactInfo>
+      <address>
+        <electronicMailAddress>alfredo.h.delos_santos@ama-inc.com</electronicMailAddress>
+      </address>
+    </contactInfo>
+  </responsibleParty>
+  <fees>NONE</fees>
+  <accessConstraints>
+    NONE
+  </accessConstraints>
+</Service>
