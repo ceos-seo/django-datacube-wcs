@@ -61,9 +61,48 @@ class DescribeCoverage(View):
 class GetCoverage(View):
     """Implements the GetCoverage functionality as defined by the OGC WCS 1.0 specification
 
+    The GetCoverage operation allows retrieval of coverages from a coverage offering. A WCS server processes a
+    GetCoverage request and returns a response to the client.
+
+    A finite number of url encoded parameters are used to produce subset of the server dataset
+
     """
 
     def get(self, request):
-        """
+        """Handles the GET parameters for the GetCoverage call, returning a dataset
+
+        GET data:
+            REQUEST: request type - fixed to "GetCoverage"
+            VERSION (optional): version number of the WCS server - fixed to 1.0.0
+            SERVICE: service type - fixed to "WCS"
+            COVERAGE (optional): coverage to return - identified using the name value from the capabilities document.
+            CRS: Coordinate Reference System in which the request is expressed.
+            RESPONSE_CRS (optional): Coordinate Reference System in which to express coverage responses.Defaults to the request CRS.
+            BBOX: Request a subset defined by the specified bounding box, with min/max coordinate pairs ordered according to the Co-ordinate
+                Reference System identified by the CRS parameter. One of BBOX or TIME is required. Comma seperated string like
+                minx, miny, maxx, maxy
+            TIME: Request a subset corresponding to the specified time instants or intervals, expressed in an extended ISO 8601 syntax.
+                Optional if a default time (or fixed time, or no time) is de-fined for the selected layer. Comma seperated string like:
+                time1,time2,time3... or min/max
+
+            WIDTH and HEIGHT: Request a grid of the specified width (w), height (h), and [for 3D grids] depth (d) (integer number of gridpoints).
+                Either these or RESX, RESY, [for 3D grids] RESZ are required.
+
+            RESX and RESY: Request a coverage subset with a specific spatial resolution along each axis of the reply CRS.
+                The values are given in the units appropriate to each axis of the CRS. Either these or WIDTH, HEIGHT
+
+            INTERPOLATION:Requested spatial interpolation method for resampling cov-erage values into the desired output grid.
+                interpolation-method must be one of the values listed in the supportedInterpolations element of the requested
+                CoverageOffering. Optional; server-defined default as stated in 8.3.6.
+            FORMAT: Requested output format of Coverage. Must be one of those listed under the description of the selected coverage.
+
+            EXCEPTIONS (optional): string fixed to application/vnd.ogc.se_xml
+
+            PARAMETER (optional): any number of optional key/val pairs like band=1,2,3 or age-1,18. The parameter name should match
+                the name of an AxisDescription element
+
+        Returns:
+            Subsetted dataset
+
 
         """
