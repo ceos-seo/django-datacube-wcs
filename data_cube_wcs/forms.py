@@ -36,7 +36,7 @@ field_exception_map = {
 AVAILABLE_INPUT_CRS = ["EPSG:4326"]
 AVAILABLE_OUTPUT_CRS = ["EPSG:4326"]
 NATIVE_CRS = ["EPSG:4326"]
-AVAILABLE_FORMATS = {'GTiff': 'image/tiff', 'netCDF': 'application/netcdf'}
+AVAILABLE_FORMATS = {'GTiff': 'image/tiff', 'netCDF': 'application/x-netcdf'}
 INTERPOLATION_OPTIONS = {'nearest neighbor': 'nearest', 'bilinear': 'bilinear', 'bicubic': 'cubic'}
 
 

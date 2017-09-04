@@ -1,6 +1,7 @@
 from django.apps import apps
 from datetime import datetime, timedelta
 import xarray as xr
+import collections
 
 from . import data_access_api
 
@@ -54,9 +55,17 @@ def form_to_data_cube_parameters(form_instance):
 
 
 def get_stacked_dataset(parameters, individual_dates, date_ranges):
+    """
+    """
 
     def _get_datetime_range_containing(*time_ranges):
         return (min(time_ranges) - timedelta(microseconds=1), max(time_ranges) + timedelta(microseconds=1))
+
+    def _clear_attrs(dataset):
+        """Clear out all attributes on an xarray dataset to write to disk."""
+        dataset.attrs = collections.OrderedDict()
+        for band in dataset:
+            dataset[band].attrs = collections.OrderedDict()
 
     full_date_ranges = [_get_datetime_range_containing(date) for date in individual_dates]
     full_date_ranges.extend(date_ranges)
@@ -72,6 +81,7 @@ def get_stacked_dataset(parameters, individual_dates, date_ranges):
     if len(data_array) > 0:
         combined_data = xr.concat(data_array, 'time')
         data = combined_data.reindex({'time': sorted(combined_data.time.values)})
+        _clear_attrs(data)
     return data
 
 

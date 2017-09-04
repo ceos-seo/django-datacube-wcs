@@ -201,8 +201,7 @@ class GetCoverage(View):
         print(dataset)
         if 'time' in dataset:
             dataset = dataset.isel(time=0).astype('float64')
-
-        with MemoryFile() as memfile:
+        """with MemoryFile() as memfile:
             with memfile.open(
                     driver=coverage_data.cleaned_data['FORMAT'],
                     width=dataset.dims['longitude'],
@@ -214,4 +213,7 @@ class GetCoverage(View):
                     dtype='float64') as dst:
                 for idx, band in enumerate(dataset.data_vars, start=1):
                     dst.write(dataset[band].values, idx)
-            return HttpResponse(memfile.read(), content_type="image/tiff")
+            return HttpResponse(
+                memfile.read(), content_type=forms.AVAILABLE_FORMATS[coverage_data.cleaned_data['FORMAT']])"""
+        return HttpResponse(
+            dataset.to_netcdf(), content_type=forms.AVAILABLE_FORMATS[coverage_data.cleaned_data['FORMAT']])
