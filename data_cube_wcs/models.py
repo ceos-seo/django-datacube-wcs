@@ -33,6 +33,7 @@ class CoverageOffering(models.Model):
         return self.end_time.isoformat()
 
     def get_temporal_domain(self):
+        """The temporal domain is specified as one or more iso8601 datetimes"""
         with data_access_api.DataAccessApi() as dc:
             return map(lambda d: d.isoformat(), dc.list_acquisition_dates(self.name))
 

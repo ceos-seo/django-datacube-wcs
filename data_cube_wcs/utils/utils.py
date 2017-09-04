@@ -55,7 +55,16 @@ def form_to_data_cube_parameters(form_instance):
 
 
 def get_stacked_dataset(parameters, individual_dates, date_ranges):
-    """
+    """Get a dataset using either a list of single dates or a list of ranges
+
+    Args:
+        parameters: dictionary-like containing all the parameters needed for a dc.load call
+        individual_dates: list/iterable of datetimes
+        date_ranges: list/iterable of two element datetime tuples
+
+    Returns:
+        dataset containing all requested data
+
     """
 
     def _get_datetime_range_containing(*time_ranges):
@@ -86,7 +95,7 @@ def get_stacked_dataset(parameters, individual_dates, date_ranges):
 
 
 def get_tiff_response(dataset):
-    """"""
+    """Uses rasterio MemoryFiles in order to return a streamable GeoTiff response"""
     with MemoryFile() as memfile:
         with memfile.open(
                 driver=coverage_data.cleaned_data['FORMAT'],
@@ -103,13 +112,12 @@ def get_tiff_response(dataset):
 
 
 def get_netcdf_response(dataset):
-    """"""
+    """Uses a standard xarray function to create a bytes-like data stream for http response"""
     return dataset.to_netcdf()
 
 
 def _get_transform_from_xr(dataset):
-    """Create a geotransform from an xarray dataset.
-    """
+    """Create a geotransform from an xarray dataset."""
 
     from rasterio.transform import from_bounds
     geotransform = from_bounds(dataset.longitude[0], dataset.latitude[-1], dataset.longitude[-1], dataset.latitude[0],

@@ -196,9 +196,9 @@ class GetCoverage(View):
                 response['Content-Type'] = 'text/xml; charset=UTF-8;'
                 return response
         dc_parameters, individual_dates, date_ranges = utils.form_to_data_cube_parameters(coverage_data)
-        print(dc_parameters)
+
         dataset = utils.get_stacked_dataset(dc_parameters, individual_dates, date_ranges)
-        print(dataset)
+
         if 'time' in dataset:
             dataset = dataset.isel(time=0).astype('float64')
         response_mapping = {'GTiff': utils.get_tiff_response, 'netCDF': utils.get_netcdf_response}

@@ -101,7 +101,14 @@ class GetCoverageForm(BaseRequestForm):
         return self.cleaned_data['INTERPOLATION']
 
     def clean(self):
-        """Basic validation of the GetCoverage parameters according to the OGC WCS 1.0 specification."""
+        """Basic validation of the GetCoverage parameters according to the OGC WCS 1.0 specification.
+
+        Pretty monolithic implementation of cleaning - done for a few reasons:
+            We don't want to continue validation if we encounter an error, hence the Returns
+            Handles the semi-optional parameter sets like the time -or- bbox inputs, resxy or height/width
+            Ensures that the ranges entered actually exist in the coverage
+
+        """
         cleaned_data = super(GetCoverageForm, self).clean()
 
         if 'COVERAGE' not in cleaned_data:
