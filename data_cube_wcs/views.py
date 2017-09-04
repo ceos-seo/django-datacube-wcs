@@ -180,12 +180,12 @@ class GetCoverage(View):
 
         coverage_data = forms.GetCoverageForm(request.GET)
         if not coverage_data.is_valid():
-            print(coverage_data.errors)
-            response = render_to_response('ServiceException.xml', {
-                'exception_code': "InvalidParameterValue",
-                'error_msg': "Invalid section value."
-            })
-            response['Content-Type'] = 'text/xml; charset=UTF-8;'
-            return response
+            for error in coverage_data.errors:
+                response = render_to_response('ServiceException.xml', {
+                    'exception_code': forms.field_exception_map[error],
+                    'error_msg': "Invalid or missing {} value.".format(error)
+                })
+                response['Content-Type'] = 'text/xml; charset=UTF-8;'
+                return response
 
         return HttpResponse("OK")

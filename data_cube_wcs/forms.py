@@ -10,6 +10,29 @@ exception_codes = [
     'InvalidParameterValue'
 ]
 
+field_exception_map = {
+    'REQUEST': 'InvalidParameterValue',
+    'VERSION': 'InvalidParameterValue',
+    'SERVICE': 'InvalidParameterValue',
+    'SECTION': 'InvalidParameterValue',
+    'UPDATESEQUENCE': 'InvalidParameterValue',
+    'COVERAGE': 'InvalidParameterValue',
+    'CRS': 'InvalidParameterValue',
+    'RESPONSE_CRS': 'InvalidParameterValue',
+    'BBOX': 'InvalidParameterValue',
+    'TIME': 'InvalidParameterValue',
+    'WIDTH': 'InvalidParameterValue',
+    'HEIGHT': 'InvalidParameterValue',
+    'RESX': 'InvalidParameterValue',
+    'RESY': 'InvalidParameterValue',
+    'HEIGHT': 'InvalidParameterValue',
+    'WIDTH': 'InvalidParameterValue',
+    'INTERPOLATION': 'InvalidParameterValue',
+    'FORMAT': 'InvalidFormat',
+    'EXCEPTIONS': 'InvalidParameterValue',
+    'measurements': 'InvalidParameterValue'
+}
+
 AVAILABLE_INPUT_CRS = ["EPSG:4326"]
 AVAILABLE_OUTPUT_CRS = ["EPSG:4326"]
 NATIVE_CRS = ["EPSG:4326"]
@@ -44,17 +67,18 @@ class GetCoverageForm(BaseRequestForm):
     COVERAGE = forms.ModelChoiceField(queryset=models.CoverageOffering.objects.all(), to_field_name="name")
 
     CRS = forms.ChoiceField(choices=((option, option) for option in AVAILABLE_INPUT_CRS), initial="EPSG:4326")
-    RESPONSE_CRS = forms.ChoiceField(choices=((option, option) for option in AVAILABLE_OUTPUT_CRS), initial="EPSG:4326")
+    RESPONSE_CRS = forms.ChoiceField(
+        required=False, choices=((option, option) for option in AVAILABLE_OUTPUT_CRS), initial="EPSG:4326")
 
     # One of the following is required.
     BBOX = forms.CharField(required=False)
     TIME = forms.CharField(required=False)
 
     # either width/height or resx/resy are required as a pair
-    WIDTH = forms.IntegerField()
-    HEIGHT = forms.IntegerField()
-    RESX = forms.FloatField()
-    RESY = forms.FloatField()
+    WIDTH = forms.IntegerField(required=False)
+    HEIGHT = forms.IntegerField(required=False)
+    RESX = forms.FloatField(required=False)
+    RESY = forms.FloatField(required=False)
 
     INTERPOLATION = forms.ChoiceField(
         required=False, choices=((option, option) for option in INTERPOLATION_OPTIONS), initial="nearest neighbor")
@@ -62,7 +86,13 @@ class GetCoverageForm(BaseRequestForm):
     EXCEPTIONS = forms.CharField(required=False, initial="application/vnd.ogc.se_xml")
 
     #measurements are the only parameters available as an AxisDescription/rangeset
-    measurements = forms.CharField()
+    measurements = forms.CharField(required=False)
+
+    def clean_RESPONSE_CRS(self):
+        """Meant to provide actual default values for various form fields if missing from GET"""
+        if not self['RESPONSE_CRS'].html_name in self.data:
+            return self.fields['RESPONSE_CRS'].initial
+        return self.cleaned_data['RESPONSE_CRS']
 
     def clean_INTERPOLATION(self):
         """Meant to provide actual default values for various form fields if missing from GET"""
@@ -70,54 +100,86 @@ class GetCoverageForm(BaseRequestForm):
             return self.fields['INTERPOLATION'].initial
         return self.cleaned_data['INTERPOLATION']
 
-    def clean_BBOX(self):
-        split_bbox = self.cleaned_data['BBOX'].split(",")
-        latitude_range = (split_bbox[1], split_bbox[3])
-        longitude_range = (split_bbox[0], split_bbox[2])
-
-        validation_cases = [
-            not utils._ranges_intersect(latitude_range,
-                                        (coverage_offering.min_latitude, coverage_offering.max_latitude)),
-            not utils._ranges_intersect(longitude_range, (coverage.min_longitude, coverage.max_longitude)),
-            latitude_range != sorted(latitude_range), longitude_range != sorted(longitude_range)
-        ]
-
-        # if the ranges are not well formed...
-        if True in validation_cases:
-            self.add_error('latitude_range', "")
-            self.add_error('longitude_range', "")
-            return
-
-        self.cleaned_data['latitude'] = latitude_range
-        self.cleaned_data['longitude'] = longitude_range
-
-    def clean_TIME(self):
-        time_ranges = []
-        times = []
-        _time_type_range = '/' in self.cleaned_data['TIME']
-        if _time_type_range:
-            time_range = self.cleaned_data['TIME'].split(",")
-            time_ranges = map(lambda r: r.split("/"), time_range)
-            time_ranges = list(map(lambda r: (parser.parse(r[0]), parser.parse(r[1])), time_ranges))
-        else:
-            date_list = self.cleaned_data['TIME'].split(",")
-            times = list(map(lambda t: parser.parse(t), date_list))
-
-        self.cleaned_data['time_ranges'] = time_ranges
-        self.cleaned_data['times'] = times
-
     def clean(self):
         cleaned_data = super(GetCoverageForm, self).clean()
-
-        coverage_offering = cleaned_data['COVERAGE']
 
         if not (cleaned_data['BBOX'] or cleaned_data['TIME']):
             self.add_error("BBOX", "")
             self.add_error("TIME", "")
+            return
 
-        if not ('RESX' in cleaned_data and 'RESY' in cleaned_data) or ('WIDTH' in cleaned_data and
-                                                                       'HEIGHT' in cleaned_data):
+        if cleaned_data.get('BBOX', None):
+            split_bbox = self.cleaned_data['BBOX'].split(",")
+            coverage_offering = self.cleaned_data['COVERAGE']
+
+            latitude_range = (float(split_bbox[1]), float(split_bbox[3]))
+            longitude_range = (float(split_bbox[0]), float(split_bbox[2]))
+
+            validation_cases = [
+                not utils._ranges_intersect(latitude_range,
+                                            (coverage_offering.min_latitude, coverage_offering.max_latitude)),
+                not utils._ranges_intersect(longitude_range,
+                                            (coverage_offering.min_longitude, coverage_offering.max_longitude)),
+                #latitude_range != sorted(latitude_range), longitude_range != sorted(longitude_range)
+            ]
+
+            # if the ranges are not well formed...
+            if True in validation_cases:
+                self.add_error('BBOX', "")
+                return
+
+            self.cleaned_data['latitude'] = latitude_range
+            self.cleaned_data['longitude'] = longitude_range
+        else:
+            self.cleaned_data['latitude'] = (coverage_offering.min_latitude, coverage_offering.max_latitude)
+            self.cleaned_data['longitude'] = (coverage_offering.min_longitude, coverage_offering.max_longitude)
+
+        if cleaned_data.get('TIME', None):
+            time_ranges = []
+            times = []
+            _time_type_range = '/' in self.cleaned_data['TIME']
+            if _time_type_range:
+                time_range = self.cleaned_data['TIME'].split(",")
+                time_ranges = map(lambda r: r.split("/"), time_range)
+                time_ranges = list(map(lambda r: (parser.parse(r[0]), parser.parse(r[1])), time_ranges))
+            else:
+                date_list = self.cleaned_data['TIME'].split(",")
+                times = list(map(lambda t: parser.parse(t), date_list))
+
+            self.cleaned_data['time_ranges'] = time_ranges
+            self.cleaned_data['times'] = times
+        else:
+            self.cleaned_data['time_ranges'] = [(coverage_offering.start_time, coverage_offering.end_time)]
+            self.cleaned_data['times'] = []
+
+        if (cleaned_data.get('RESX', None) and cleaned_data.get('RESY', None)):
+            if cleaned_data['RESX'] < 0 or cleaned_data['RESY'] > 0:
+                self.add_error('RESX', "")
+                self.add_error('RESY', "")
+                return
+        elif (cleaned_data.get('WIDTH', None) and cleaned_data.get('HEIGHT', None)):
+            if cleaned_data['HEIGHT'] < 0 or cleaned_data['WIDTH'] < 0:
+                self.add_error('HEIGHT', "")
+                self.add_error('WIDTH', "")
+                return
+            self.cleaned_data['RESX'] = (
+                self.cleaned_data['longitude'][1] - self.cleaned_data['longitude'][0]) / cleaned_data['WIDTH']
+            self.cleaned_data['RESX'] = (
+                self.cleaned_data['latitude'][1] - self.cleaned_data['latitude'][0]) / cleaned_data['HEIGHT']
+        else:
             self.add_error('RESX', "")
             self.add_error('RESY', "")
             self.add_error('HEIGHT', "")
             self.add_error('WIDTH', "")
+            return
+
+        if cleaned_data.get('measurements', None):
+            valid_measurements = coverage_offering.get_measurements()
+            request_measurements = cleaned_data['measurements'].split(",")
+            # if the measurements aren't all valid, raise
+            if len(list(set(valid_measurements) & set(request_measurements))) != len(request_measurements):
+                self.add_error("measurements", "")
+            else:
+                self.cleaned_data['measurements'] = request_measurements
+        else:
+            self.cleaned_data['measurements'] = coverage_offering.get_measurements()
