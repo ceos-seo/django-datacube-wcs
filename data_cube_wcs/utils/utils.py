@@ -32,3 +32,7 @@ def update_coverages():
 
         for model in list_of_dicts:
             apps.get_model("data_cube_wcs.CoverageOffering").objects.update_or_create(**model)
+
+
+def _ranges_intersect(x, y):
+    return x[0] <= y[1] and y[0] <= x[1]
