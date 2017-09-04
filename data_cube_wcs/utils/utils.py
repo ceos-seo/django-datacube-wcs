@@ -10,15 +10,10 @@ def update_coverages():
 
     with data_access_api.DataAccessApi() as dc:
         product_details = dc.dc.list_products()[dc.dc.list_products()['format'] == "NetCDF"]
-        print(product_details)
         product_details['label'] = product_details.apply(
             lambda row: "{} - {}".format(row['platform'], row['name']), axis=1)
 
-        def get_details(product):
-            print(product)
-            return dc.get_datacube_metadata(product)
-
-        extent_data = {product: get_details(product) for product in product_details['name'].values}
+        extent_data = {product: dc.get_datacube_metadata(product) for product in product_details['name'].values}
 
         product_details['min_latitude'] = product_details.apply(
             lambda row: extent_data[row['name']]['lat_extents'][0], axis=1)
@@ -52,7 +47,7 @@ def form_to_data_cube_parameters(form_instance):
         'latitude': form_instance.cleaned_data['latitude'],
         'longitude': form_instance.cleaned_data['longitude'],
         'measurements': form_instance.cleaned_data['measurements'],
-        'resolution': (form_instance.cleaned_data['RESX'], form_instance.cleaned_data['RESY']),
+        'resolution': (form_instance.cleaned_data['RESY'], form_instance.cleaned_data['RESX']),
         'crs': form_instance.cleaned_data['CRS'],
         'resampling': form_instance.cleaned_data['resampling']
     }, individual_dates, date_ranges
