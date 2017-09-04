@@ -85,6 +85,28 @@ def get_stacked_dataset(parameters, individual_dates, date_ranges):
     return data
 
 
+def get_tiff_response(dataset):
+    """"""
+    with MemoryFile() as memfile:
+        with memfile.open(
+                driver=coverage_data.cleaned_data['FORMAT'],
+                width=dataset.dims['longitude'],
+                height=dataset.dims['latitude'],
+                count=len(dataset.data_vars),
+                transform=utils._get_transform_from_xr(dataset),
+                crs=coverage_data.cleaned_data['RESPONSE_CRS'],
+                nodata=-9999,
+                dtype='float64') as dst:
+            for idx, band in enumerate(dataset.data_vars, start=1):
+                dst.write(dataset[band].values, idx)
+        return memfile.read()
+
+
+def get_netcdf_response(dataset):
+    """"""
+    return dataset.to_netcdf()
+
+
 def _get_transform_from_xr(dataset):
     """Create a geotransform from an xarray dataset.
     """
