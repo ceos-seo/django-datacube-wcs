@@ -6,6 +6,7 @@ import pandas as pd
 
 from . import forms
 from . import models
+from .utils import utils
 
 
 class WebService(View):
@@ -187,5 +188,8 @@ class GetCoverage(View):
                 })
                 response['Content-Type'] = 'text/xml; charset=UTF-8;'
                 return response
-
+        dc_parameters, individual_dates, date_ranges = utils.form_to_data_cube_parameters(coverage_data)
+        print(dc_parameters)
+        dataset = utils.get_stacked_dataset(dc_parameters, individual_dates, date_ranges)
+        print(dataset)
         return HttpResponse("OK")

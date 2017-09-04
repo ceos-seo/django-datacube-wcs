@@ -101,7 +101,12 @@ class GetCoverageForm(BaseRequestForm):
         return self.cleaned_data['INTERPOLATION']
 
     def clean(self):
+        """Basic validation of the GetCoverage parameters according to the OGC WCS 1.0 specification."""
         cleaned_data = super(GetCoverageForm, self).clean()
+
+        if 'COVERAGE' not in cleaned_data:
+            self.add_error("COVERAGE", "")
+            return
 
         if not (cleaned_data['BBOX'] or cleaned_data['TIME']):
             self.add_error("BBOX", "")
@@ -164,7 +169,7 @@ class GetCoverageForm(BaseRequestForm):
                 return
             self.cleaned_data['RESX'] = (
                 self.cleaned_data['longitude'][1] - self.cleaned_data['longitude'][0]) / cleaned_data['WIDTH']
-            self.cleaned_data['RESX'] = (
+            self.cleaned_data['RESY'] = -1 * (
                 self.cleaned_data['latitude'][1] - self.cleaned_data['latitude'][0]) / cleaned_data['HEIGHT']
         else:
             self.add_error('RESX', "")

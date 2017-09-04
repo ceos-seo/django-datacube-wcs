@@ -1,5 +1,6 @@
 from . import data_access_api
 from django.apps import apps
+from datetime import datetime, timedelta
 
 
 def update_coverages():
@@ -7,10 +8,15 @@ def update_coverages():
 
     with data_access_api.DataAccessApi() as dc:
         product_details = dc.dc.list_products()[dc.dc.list_products()['format'] == "NetCDF"]
+        print(product_details)
         product_details['label'] = product_details.apply(
             lambda row: "{} - {}".format(row['platform'], row['name']), axis=1)
 
-        extent_data = {product: dc.get_datacube_metadata(product) for product in product_details['name'].values}
+        def get_details(product):
+            print(product)
+            return dc.get_datacube_metadata(product)
+
+        extent_data = {product: get_details(product) for product in product_details['name'].values}
 
         product_details['min_latitude'] = product_details.apply(
             lambda row: extent_data[row['name']]['lat_extents'][0], axis=1)
@@ -32,6 +38,43 @@ def update_coverages():
 
         for model in list_of_dicts:
             apps.get_model("data_cube_wcs.CoverageOffering").objects.update_or_create(**model)
+
+
+def form_to_data_cube_parameters(form_instance):
+    """Converts some of the all caps/other form data parameters to the required Data Cube parameters"""
+    individual_dates = form_instance.cleaned_data['times']
+    date_ranges = form_instance.cleaned_data['time_ranges']
+
+    return {
+        'product': form_instance.cleaned_data['COVERAGE'].name,
+        'latitude': form_instance.cleaned_data['latitude'],
+        'longitude': form_instance.cleaned_data['longitude'],
+        'measurements': form_instance.cleaned_data['measurements'],
+        'resolution': (form_instance.cleaned_data['RESX'], form_instance.cleaned_data['RESY']),
+        'crs': form_instance.cleaned_data['CRS']
+    }, individual_dates, date_ranges
+
+
+def get_stacked_dataset(parameters, individual_dates, date_ranges):
+
+    def _get_datetime_range_containing(*time_ranges):
+        return (min(time_ranges) - timedelta(microseconds=1), max(time_ranges) + timedelta(microseconds=1))
+
+    full_date_ranges = [_get_datetime_range_containing(date) for date in individual_dates]
+    full_date_ranges.extend(date_ranges)
+
+    data_array = []
+    with data_access_api.DataAccessApi() as dc:
+        for _range in full_date_ranges:
+            product_data = dc.get_dataset_by_extent(time=_range, **parameters)
+            if 'time' in product_data:
+                data_array.append(product_data.copy(deep=True))
+
+    data = None
+    if len(data_array) > 0:
+        combined_data = xr.concat(data_array, 'time')
+        data = combined_data.reindex({'time': sorted(combined_data.time.values)})
+    return data
 
 
 def _ranges_intersect(x, y):
