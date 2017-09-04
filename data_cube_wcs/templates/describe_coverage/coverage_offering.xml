@@ -42,21 +42,25 @@
     </RangeSet>
   </rangeSet>
   <supportedCRSs>
+    <requestResponseCRSs>EPSG:4326</requestResponseCRSs>
     {% for crs in available_input_crs %}
       <requestCRSs>{{ crs }}</requestCRSs>
     {% endfor %}
     {% for crs in available_output_crs %}
       <responseCRSs>{{ crs }}</responseCRSs>
     {% endfor %}
-    <nativeCRSs>{{ native_crs }}</nativeCRSs>
+    {% for crs in native_crs %}
+      <nativeCRSs>{{ crs }}</nativeCRSs>
+    {% endfor %}
   </supportedCRSs>
   <supportedFormats nativeFormat="raw binary">
-    <formats>GeoTIFF</formats>
-    <formats>NetCDF</formats>
+    {% for format in valid_formats %}
+      <formats>{{ format }}</formats>
+    {% endfor %}
   </supportedFormats>
   <supportedInterpolations default="nearest neighbor">
-    <interpolationMethod>nearest neighbor</interpolationMethod>
-    <interpolationMethod>bilinear</interpolationMethod>
-    <interpolationMethod>bicubic</interpolationMethod>
+    {% for method in interpolation_methods %}
+      <interpolationMethod>{{ method }}</interpolationMethod>
+    {% endfor %}
   </supportedInterpolations>
 </CoverageOffering>

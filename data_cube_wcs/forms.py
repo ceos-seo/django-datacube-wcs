@@ -36,8 +36,8 @@ field_exception_map = {
 AVAILABLE_INPUT_CRS = ["EPSG:4326"]
 AVAILABLE_OUTPUT_CRS = ["EPSG:4326"]
 NATIVE_CRS = ["EPSG:4326"]
-AVAILABLE_FORMATS = ['GeoTIFF', 'NetCDF']
-INTERPOLATION_OPTIONS = ['nearest neighbor', 'bilinear', 'bicubic', 'lost area', 'barycentric']
+AVAILABLE_FORMATS = {'GTiff': 'image/tiff', 'netCDF': 'application/netcdf'}
+INTERPOLATION_OPTIONS = {'nearest neighbor': 'nearest', 'bilinear': 'bilinear', 'bicubic': 'cubic'}
 
 
 class BaseRequestForm(forms.Form):
@@ -82,7 +82,7 @@ class GetCoverageForm(BaseRequestForm):
 
     INTERPOLATION = forms.ChoiceField(
         required=False, choices=((option, option) for option in INTERPOLATION_OPTIONS), initial="nearest neighbor")
-    FORMAT = forms.ChoiceField(choices=((option, option) for option in AVAILABLE_FORMATS), initial="GeoTIFF")
+    FORMAT = forms.ChoiceField(choices=((option, option) for option in AVAILABLE_FORMATS), initial="GTiff")
     EXCEPTIONS = forms.CharField(required=False, initial="application/vnd.ogc.se_xml")
 
     #measurements are the only parameters available as an AxisDescription/rangeset
@@ -188,3 +188,5 @@ class GetCoverageForm(BaseRequestForm):
                 self.cleaned_data['measurements'] = request_measurements
         else:
             self.cleaned_data['measurements'] = coverage_offering.get_measurements()
+
+        self.cleaned_data['resampling'] = INTERPOLATION_OPTIONS.get(self.cleaned_data['INTERPOLATION'], 'nearest')

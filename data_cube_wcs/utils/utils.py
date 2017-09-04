@@ -1,6 +1,8 @@
-from . import data_access_api
 from django.apps import apps
 from datetime import datetime, timedelta
+import xarray as xr
+
+from . import data_access_api
 
 
 def update_coverages():
@@ -51,7 +53,8 @@ def form_to_data_cube_parameters(form_instance):
         'longitude': form_instance.cleaned_data['longitude'],
         'measurements': form_instance.cleaned_data['measurements'],
         'resolution': (form_instance.cleaned_data['RESX'], form_instance.cleaned_data['RESY']),
-        'crs': form_instance.cleaned_data['CRS']
+        'crs': form_instance.cleaned_data['CRS'],
+        'resampling': form_instance.cleaned_data['resampling']
     }, individual_dates, date_ranges
 
 
@@ -75,6 +78,17 @@ def get_stacked_dataset(parameters, individual_dates, date_ranges):
         combined_data = xr.concat(data_array, 'time')
         data = combined_data.reindex({'time': sorted(combined_data.time.values)})
     return data
+
+
+def _get_transform_from_xr(dataset):
+    """Create a geotransform from an xarray dataset.
+    """
+
+    from rasterio.transform import from_bounds
+    geotransform = from_bounds(dataset.longitude[0], dataset.latitude[-1], dataset.longitude[-1], dataset.latitude[0],
+                               len(dataset.longitude), len(dataset.latitude))
+
+    return geotransform
 
 
 def _ranges_intersect(x, y):

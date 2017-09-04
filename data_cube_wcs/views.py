@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.views import View
 
 import pandas as pd
+from rasterio.io import MemoryFile
 
 from . import forms
 from . import models
@@ -81,10 +82,7 @@ class GetCapabilities(View):
 
         context = {
             'base_url': request.build_absolute_uri().split('?')[0],
-            'coverage_offerings': models.CoverageOffering.objects.all(),
-            'native_crs': forms.NATIVE_CRS,
-            'available_input_crs': forms.AVAILABLE_INPUT_CRS,
-            'available_output_crs': forms.AVAILABLE_OUTPUT_CRS
+            'coverage_offerings': models.CoverageOffering.objects.all()
         }
         if 'SECTION' in get_capabilities_form.cleaned_data and get_capabilities_form.cleaned_data['SECTION']:
             context['section'] = section_map[get_capabilities_form.cleaned_data['SECTION']]
@@ -126,7 +124,16 @@ class DescribeCoverage(View):
             if not coverages:
                 coverages = models.CoverageOffering.objects.all()
 
-        response = render_to_response('DescribeCoverage.xml', context={'coverage_offerings': coverages})
+        response = render_to_response(
+            'DescribeCoverage.xml',
+            context={
+                'coverage_offerings': coverages,
+                'native_crs': forms.NATIVE_CRS,
+                'available_input_crs': forms.AVAILABLE_INPUT_CRS,
+                'available_output_crs': forms.AVAILABLE_OUTPUT_CRS,
+                'interpolation_methods': forms.INTERPOLATION_OPTIONS,
+                'valid_formats': forms.AVAILABLE_FORMATS
+            })
         response['Content-Type'] = 'text/xml; charset=UTF-8;'
         return response
 
@@ -192,4 +199,19 @@ class GetCoverage(View):
         print(dc_parameters)
         dataset = utils.get_stacked_dataset(dc_parameters, individual_dates, date_ranges)
         print(dataset)
-        return HttpResponse("OK")
+        if 'time' in dataset:
+            dataset = dataset.isel(time=0).astype('float64')
+
+        with MemoryFile() as memfile:
+            with memfile.open(
+                    driver=coverage_data.cleaned_data['FORMAT'],
+                    width=dataset.dims['longitude'],
+                    height=dataset.dims['latitude'],
+                    count=len(dataset.data_vars),
+                    transform=utils._get_transform_from_xr(dataset),
+                    crs=coverage_data.cleaned_data['RESPONSE_CRS'],
+                    nodata=-9999,
+                    dtype='float64') as dst:
+                for idx, band in enumerate(dataset.data_vars, start=1):
+                    dst.write(dataset[band].values, idx)
+            return HttpResponse(memfile.read(), content_type="image/tiff")
