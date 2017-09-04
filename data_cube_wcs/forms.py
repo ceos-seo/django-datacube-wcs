@@ -27,7 +27,7 @@ class GetCapabilitiesForm(BaseRequestForm):
 
 class GetCoverageForm(BaseRequestForm):
     """GetCoverage request form as defined by the OGC WCS 1.0 specification"""
-    COVERAGE = forms.CharField()
+    COVERAGE = forms.ModelChoiceField(queryset=models.CoverageOffering.objects.all(), to_field_name="name")
     CRS = forms.CharField()
     RESPONSE_CRS = forms.CharField()
     BBOX = forms.CharField()
@@ -39,5 +39,8 @@ class GetCoverageForm(BaseRequestForm):
 
     INTERPOLATION = forms.ChoiceField(choices=(), initial="")
     FORMAT = forms.ChoiceField()
-    EXCEPTIONS = forms.CharField()
+    EXCEPTIONS = forms.CharField(initial="application/vnd.ogc.se_xml")
     PARAMETERS = forms.CharField()
+
+    def clean(self):
+        cleaned_data = super(GetCoverageForm, self).clean()

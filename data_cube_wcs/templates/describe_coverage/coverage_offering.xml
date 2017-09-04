@@ -42,8 +42,13 @@
     </RangeSet>
   </rangeSet>
   <supportedCRSs>
-    <requestResponseCRSs>EPSG:4326</requestResponseCRSs>
-    <nativeCRSs>EPSG:4326</nativeCRSs>
+    {% for crs in available_input_crs %}
+      <requestCRSs>{{ crs }}</requestCRSs>
+    {% endfor %}
+    {% for crs in available_output_crs %}
+      <responseCRSs>{{ crs }}</responseCRSs>
+    {% endfor %}
+    <nativeCRSs>{{ native_crs }}</nativeCRSs>
   </supportedCRSs>
   <supportedFormats nativeFormat="raw binary">
     <formats>GeoTIFF</formats>

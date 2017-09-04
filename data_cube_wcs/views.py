@@ -12,6 +12,10 @@ exception_codes = [
     'InvalidParameterValue'
 ]
 
+AVAILABLE_INPUT_CRS = ["EPSG:4326"]
+AVAILABLE_OUTPUT_CRS = ["EPSG:4326"]
+NATIVE_CRS = ["EPSG:4326"]
+
 
 class WebService(View):
     """Entry point for the suite of webservice OGC implementations"""
@@ -85,7 +89,10 @@ class GetCapabilities(View):
 
         context = {
             'base_url': request.build_absolute_uri().split('?')[0],
-            'coverage_offerings': models.CoverageOffering.objects.all()
+            'coverage_offerings': models.CoverageOffering.objects.all(),
+            'native_crs': NATIVE_CRS,
+            'available_input_crs': AVAILABLE_INPUT_CRS,
+            'available_output_crs': AVAILABLE_OUTPUT_CRS
         }
         if 'SECTION' in get_capabilities_form.cleaned_data and get_capabilities_form.cleaned_data['SECTION']:
             context['section'] = section_map[get_capabilities_form.cleaned_data['SECTION']]
@@ -178,5 +185,16 @@ class GetCoverage(View):
         Returns:
             Subsetted dataset
 
-
         """
+
+        coverage_data = forms.GetCoverageForm(request.GET)
+        if not coverage_data.is_valid():
+            print(coverage_data.errors)
+            response = render_to_response('ServiceException.xml', {
+                'exception_code': "InvalidParameterValue",
+                'error_msg': "Invalid section value."
+            })
+            response['Content-Type'] = 'text/xml; charset=UTF-8;'
+            return response
+
+        return HttpResponse("OK")
