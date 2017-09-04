@@ -22,24 +22,22 @@
   <rangeSet>
     <RangeSet>
       <name>Bands</name>
-      <label>MODIS Radiometric Bands</label>
+      <label>Data Cube bands/measurements</label>
       <axisDescription>
         <AxisDescription>
-          <name>bands</name>
+          <name>measurements</name>
           <label>Bands/Channels/Samples</label>
           <values>
-            <singleValue>1</singleValue>
-            <singleValue>2</singleValue>
-            <singleValue>3</singleValue>
-            <singleValue>4</singleValue>
+            {% for measurement in coverage_offering.get_measurements %}
+              <singleValue>{{ measurement }}</singleValue>
+            {% endfor %}
           </values>
         </AxisDescription>
       </axisDescription>
       <NullValues>
-        <singleValue>1</singleValue>
-        <singleValue>2</singleValue>
-        <singleValue>3</singleValue>
-        <singleValue>4</singleValue>
+        {% for nodata_value in coverage_offering.get_nodata_values %}
+          <singleValue>{{ nodata_value }}</singleValue>
+        {% endfor %}
       </NullValues>
     </RangeSet>
   </rangeSet>

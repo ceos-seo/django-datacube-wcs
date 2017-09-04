@@ -127,8 +127,9 @@ class DescribeCoverage(View):
             if not coverages:
                 coverages = models.CoverageOffering.objects.all()
 
-        response = render_to_response('DescribeCoverage.xml', {})
+        response = render_to_response('DescribeCoverage.xml', context={'coverage_offerings': coverages})
         response['Content-Type'] = 'text/xml; charset=UTF-8;'
+        return response
 
 
 class GetCoverage(View):

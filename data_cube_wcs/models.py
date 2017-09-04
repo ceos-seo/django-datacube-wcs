@@ -1,6 +1,6 @@
 from django.db import models
 
-from utils import data_access_api
+from .utils import data_access_api
 
 
 class CoverageOffering(models.Model):
@@ -35,3 +35,11 @@ class CoverageOffering(models.Model):
     def get_temporal_domain(self):
         with data_access_api.DataAccessApi() as dc:
             return map(lambda d: d.isoformat(), dc.list_acquisition_dates(self.name))
+
+    def get_measurements(self):
+        with data_access_api.DataAccessApi() as dc:
+            return dc.dc.list_measurements().ix[self.name].index.values
+
+    def get_nodata_values(self):
+        with data_access_api.DataAccessApi() as dc:
+            return dc.dc.list_measurements().ix[self.name]['nodata'].values

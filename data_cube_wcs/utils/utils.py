@@ -1,5 +1,5 @@
 from . import data_access_api
-from ..models import CoverageOffering
+from django.apps import apps
 
 
 def update_coverages():
@@ -31,4 +31,4 @@ def update_coverages():
         ]].to_dict('records')
 
         for model in list_of_dicts:
-            CoverageOffering.objects.update_or_create(**model)
+            apps.get_model("data_cube_wcs.CoverageOffering").objects.update_or_create(**model)
