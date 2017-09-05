@@ -2,9 +2,6 @@ from django.shortcuts import render, render_to_response
 from django.http import HttpResponse
 from django.views import View
 
-import pandas as pd
-from rasterio.io import MemoryFile
-
 from . import forms
 from . import models
 from .utils import utils
@@ -203,5 +200,6 @@ class GetCoverage(View):
             dataset = dataset.isel(time=0).astype('float64')
         response_mapping = {'GTiff': utils.get_tiff_response, 'netCDF': utils.get_netcdf_response}
         return HttpResponse(
-            response_mapping[coverage_data.cleaned_data['FORMAT']](dataset),
+            response_mapping[coverage_data.cleaned_data['FORMAT']](dataset, coverage_data.cleaned_data['RESPONSE_CRS'],
+                                                                   coverage_data.cleaned_data['FORMAT']),
             content_type=forms.AVAILABLE_FORMATS[coverage_data.cleaned_data['FORMAT']])

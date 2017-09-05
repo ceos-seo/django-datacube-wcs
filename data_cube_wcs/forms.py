@@ -132,7 +132,7 @@ class GetCoverageForm(BaseRequestForm):
                                             (coverage_offering.min_latitude, coverage_offering.max_latitude)),
                 not utils._ranges_intersect(longitude_range,
                                             (coverage_offering.min_longitude, coverage_offering.max_longitude)),
-                #latitude_range != sorted(latitude_range), longitude_range != sorted(longitude_range)
+                latitude_range != tuple(sorted(latitude_range)), longitude_range != tuple(sorted(longitude_range))
             ]
 
             # if the ranges are not well formed...

@@ -2,6 +2,7 @@ from django.apps import apps
 from datetime import datetime, timedelta
 import xarray as xr
 import collections
+from rasterio.io import MemoryFile
 
 from . import data_access_api
 
@@ -94,16 +95,16 @@ def get_stacked_dataset(parameters, individual_dates, date_ranges):
     return data
 
 
-def get_tiff_response(dataset):
+def get_tiff_response(dataset, crs, format):
     """Uses rasterio MemoryFiles in order to return a streamable GeoTiff response"""
     with MemoryFile() as memfile:
         with memfile.open(
-                driver=coverage_data.cleaned_data['FORMAT'],
+                driver=format,
                 width=dataset.dims['longitude'],
                 height=dataset.dims['latitude'],
                 count=len(dataset.data_vars),
-                transform=utils._get_transform_from_xr(dataset),
-                crs=coverage_data.cleaned_data['RESPONSE_CRS'],
+                transform=_get_transform_from_xr(dataset),
+                crs=crs,
                 nodata=-9999,
                 dtype='float64') as dst:
             for idx, band in enumerate(dataset.data_vars, start=1):
@@ -111,8 +112,9 @@ def get_tiff_response(dataset):
         return memfile.read()
 
 
-def get_netcdf_response(dataset):
+def get_netcdf_response(dataset, crs, format):
     """Uses a standard xarray function to create a bytes-like data stream for http response"""
+    dataset.attrs['crs'] = crs
     return dataset.to_netcdf()
 
 
