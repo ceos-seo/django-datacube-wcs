@@ -13,10 +13,6 @@
       {% for time in coverage_offering.get_temporal_domain %}
         <gml:timePosition>{{ time }}</gml:timePosition>
       {% endfor %}
-      <timePeriod>
-        <beginPosition>{{ coverage_offering.get_start_time }}</beginPosition>
-        <endPosition>{{ coverage_offering.get_end_time }}</endPosition>
-      </timePeriod>
     </temporalDomain>
   </domainSet>
   <rangeSet>

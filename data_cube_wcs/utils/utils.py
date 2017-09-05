@@ -52,6 +52,8 @@ def get_stacked_dataset(parameters, individual_dates, date_ranges):
     with data_access_api.DataAccessApi() as dc:
         for _range in full_date_ranges:
             product_data = dc.get_dataset_by_extent(time=_range, **parameters)
+            from celery.contrib import rdb
+            rdb.set_trace()
             if 'time' in product_data:
                 data_array.append(product_data.copy(deep=True))
 
