@@ -1,4 +1,6 @@
 from django.db import models
+from django.db import IntegrityError
+import pytz
 
 from .utils import data_access_api
 
@@ -69,9 +71,9 @@ class CoverageOffering(models.Model):
             product_details['max_longitude'] = product_details.apply(
                 lambda row: extent_data[row['name']]['lon_extents'][1], axis=1)
             product_details['start_time'] = product_details.apply(
-                lambda row: extent_data[row['name']]['time_extents'][0], axis=1)
+                lambda row: extent_data[row['name']]['time_extents'][0].replace(tzinfo=pytz.UTC), axis=1)
             product_details['end_time'] = product_details.apply(
-                lambda row: extent_data[row['name']]['time_extents'][1], axis=1)
+                lambda row: extent_data[row['name']]['time_extents'][1].replace(tzinfo=pytz.UTC), axis=1)
 
             list_of_dicts = product_details[[
                 'name', 'description', 'label', 'min_latitude', 'max_latitude', 'min_longitude', 'max_longitude',
@@ -79,7 +81,10 @@ class CoverageOffering(models.Model):
             ]].to_dict('records')
 
             for model in list_of_dicts:
-                obj, created = cls.objects.update_or_create(**model)
+                try:
+                    cls(**model).save()
+                except IntegrityError:
+                    cls.objects.filter(name=model['name']).update(**model)
 
         if update_aux:
             cls.create_rangeset()
@@ -90,16 +95,16 @@ class CoverageOffering(models.Model):
 
         def get_acquisition_dates(coverage):
             with data_access_api.DataAccessApi() as dc:
-                return dc.list_acquisition_dates(coverage.name)
+                return map(lambda d: d.replace(tzinfo=pytz.UTC), dc.list_acquisition_dates(coverage.name))
 
         for coverage in cls.objects.all():
             temporal_domain = [
-                CoverageTemporalDomain(coverage_offering=coverage, date=date)
+                CoverageTemporalDomainEntry(coverage_offering=coverage, date=date)
                 for date in get_acquisition_dates(coverage)
-                if not CoverageTemporalDomain.objects.filter(coverage_offering=coverage, date=date).exists()
+                if not CoverageTemporalDomainEntry.objects.filter(coverage_offering=coverage, date=date).exists()
             ]
 
-            CoverageTemporalDomain.objects.bulk_create(temporal_domain)
+            CoverageTemporalDomainEntry.objects.bulk_create(temporal_domain)
 
     @classmethod
     def create_rangeset(cls):
@@ -110,13 +115,13 @@ class CoverageOffering(models.Model):
                 band_names = bands.index.values
 
                 rangeset = [
-                    CoverageRangeset(coverage_offering=coverage, band_name=band_name, null_value=nodata_value)
+                    CoverageRangesetEntry(coverage_offering=coverage, band_name=band_name, null_value=nodata_value)
                     for band_name, nodata_value in zip(band_names, nodata_values)
-                    if not CoverageRangeset.objects.filter(
+                    if not CoverageRangesetEntry.objects.filter(
                         coverage_offering=coverage, band_name=band_name, null_value=nodata_value).exists()
                 ]
 
-                CoverageRangeset.objects.bulk_create(rangeset)
+                CoverageRangesetEntry.objects.bulk_create(rangeset)
 
 
 class CoverageTemporalDomainEntry(models.Model):
@@ -129,7 +134,7 @@ class CoverageTemporalDomainEntry(models.Model):
         unique_together = (('coverage_offering', 'date'))
 
     def get_timestring(self):
-        return self.date.isoformat()
+        return self.date.replace(tzinfo=None).isoformat()
 
 
 class CoverageRangesetEntry(models.Model):
