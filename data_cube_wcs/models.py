@@ -18,6 +18,8 @@ class CoverageOffering(models.Model):
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
 
+    offer_temporal = models.BooleanField(default=True)
+
     def get_min_point(self):
         """Get a lon lat point as per the gml:pos requirement"""
         return "{} {}".format(self.min_longitude, self.min_latitude)

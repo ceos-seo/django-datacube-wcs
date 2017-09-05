@@ -38,8 +38,7 @@ def get_stacked_dataset(parameters, individual_dates, date_ranges):
     """
 
     def _get_datetime_range_containing(*time_ranges):
-        return (min(time_ranges) - timedelta(hours=4, microseconds=1),
-                max(time_ranges) + timedelta(hours=4, microseconds=1))
+        return (min(time_ranges) - timedelta(microseconds=1), max(time_ranges) + timedelta(microseconds=1))
 
     def _clear_attrs(dataset):
         """Clear out all attributes on an xarray dataset to write to disk."""
@@ -61,10 +60,11 @@ def get_stacked_dataset(parameters, individual_dates, date_ranges):
     if len(data_array) > 0:
         combined_data = xr.concat(data_array, 'time')
         data = combined_data.reindex({'time': sorted(combined_data.time.values)})
-        if data.dims['time'] > 1:
+        """if data.dims['time'] > 1:
             data = data.apply(
-                lambda ds: ds.where(ds != ds.nodata).mean('time', skipna=True).fillna(ds.nodata), keep_attrs=True)
+                lambda ds: ds.where(ds != ds.nodata).mean('time', skipna=True).fillna(ds.nodata), keep_attrs=True)"""
         _clear_attrs(data)
+        data = data.isel(time=0)
 
     # if there isn't any data, we can assume that there was no data for the acquisition
     if data is None:

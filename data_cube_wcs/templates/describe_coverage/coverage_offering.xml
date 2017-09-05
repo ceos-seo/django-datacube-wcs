@@ -9,11 +9,13 @@
         <gml:pos>{{ coverage_offering.get_max_point }}</gml:pos>
       </gml:Envelope>
     </spatialDomain>
-    <temporalDomain>
-      {% for time in coverage_offering.get_temporal_domain %}
-        <gml:timePosition>{{ time }}</gml:timePosition>
-      {% endfor %}
-    </temporalDomain>
+    {% if coverage_offering.offer_temporal %}
+      <temporalDomain>
+        {% for time in coverage_offering.get_temporal_domain %}
+          <gml:timePosition>{{ time }}</gml:timePosition>
+        {% endfor %}
+      </temporalDomain>
+    {% endif %}
   </domainSet>
   <rangeSet>
     <RangeSet>
