@@ -75,29 +75,34 @@ def get_stacked_dataset(parameters, individual_dates, date_ranges):
                     for band in parameters['measurements']
                 },
                 coords={'latitude': extents['latitude'],
-                        'longitude': extents['longitude']})
+                        'longitude': extents['longitude']}).astype('int16')
 
     return data
 
 
-def get_tiff_response(dataset, crs, format):
+def get_tiff_response(coverage_offering, dataset, crs):
     """Uses rasterio MemoryFiles in order to return a streamable GeoTiff response"""
+    dtype = str(dataset[list(dataset.data_vars)[0]].dtype)
+    rangeset = apps.get_model("data_cube_wcs.CoverageRangesetEntry").objects.filter(coverage_offering=coverage_offering)
+
+    dataset = dataset.astype(dtype)
     with MemoryFile() as memfile:
         with memfile.open(
-                driver=format,
+                driver="GTiff",
                 width=dataset.dims['longitude'],
                 height=dataset.dims['latitude'],
                 count=len(dataset.data_vars),
                 transform=_get_transform_from_xr(dataset),
                 crs=crs,
                 nodata=-9999,
-                dtype='float64') as dst:
+                dtype=dtype) as dst:
             for idx, band in enumerate(dataset.data_vars, start=1):
                 dst.write(dataset[band].values, idx)
+            dst.set_nodatavals([rangeset.get(band_name=band).null_value for band in dataset.data_vars])
         return memfile.read()
 
 
-def get_netcdf_response(dataset, crs, format):
+def get_netcdf_response(coverage_offering, dataset, crs):
     """Uses a standard xarray function to create a bytes-like data stream for http response"""
     dataset.attrs['crs'] = crs
     return dataset.to_netcdf()

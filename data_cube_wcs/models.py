@@ -142,4 +142,4 @@ class CoverageRangesetEntry(models.Model):
 
     coverage_offering = models.ForeignKey(CoverageOffering, on_delete=models.CASCADE)
     band_name = models.CharField(max_length=50)
-    null_value = models.CharField(max_length=50)
+    null_value = models.FloatField(default=-9999)
