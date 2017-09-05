@@ -6,11 +6,6 @@
           <Get><OnlineResource xlink:type="simple" xlink:href="{{ base_url }}?" /></Get>
         </HTTP>
       </DCPType>
-      <DCPType>
-        <HTTP>
-          <Post><OnlineResource xlink:type="simple" xlink:href="{{ base_url }}?" /></Post>
-        </HTTP>
-      </DCPType>
     </GetCapabilities>
     <DescribeCoverage>
       <DCPType>
@@ -18,21 +13,11 @@
           <Get><OnlineResource xlink:type="simple" xlink:href="{{ base_url }}?" /></Get>
         </HTTP>
       </DCPType>
-      <DCPType>
-        <HTTP>
-          <Post><OnlineResource xlink:type="simple" xlink:href="{{ base_url }}?" /></Post>
-        </HTTP>
-      </DCPType>
     </DescribeCoverage>
     <GetCoverage>
       <DCPType>
         <HTTP>
           <Get><OnlineResource xlink:type="simple" xlink:href="{{ base_url }}?" /></Get>
-        </HTTP>
-      </DCPType>
-      <DCPType>
-        <HTTP>
-          <Post><OnlineResource xlink:type="simple" xlink:href="{{ base_url }}?" /></Post>
         </HTTP>
       </DCPType>
     </GetCoverage>
