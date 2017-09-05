@@ -1,9 +1,14 @@
 from django.apps import apps
 from datetime import datetime, timedelta
+from django.conf import settings
+
 import xarray as xr
 import numpy as np
 import collections
 from rasterio.io import MemoryFile
+
+from datacube.config import LocalConfig
+import configparser
 
 from . import data_access_api
 
@@ -50,7 +55,7 @@ def get_stacked_dataset(parameters, individual_dates, date_ranges):
     full_date_ranges.extend(date_ranges)
 
     data_array = []
-    with data_access_api.DataAccessApi() as dc:
+    with data_access_api.DataAccessApi(config=config_from_settings()) as dc:
         for _range in full_date_ranges:
             product_data = dc.get_dataset_by_extent(time=_range, **parameters)
             if 'time' in product_data:
@@ -68,7 +73,7 @@ def get_stacked_dataset(parameters, individual_dates, date_ranges):
 
     # if there isn't any data, we can assume that there was no data for the acquisition
     if data is None:
-        with data_access_api.DataAccessApi() as dc:
+        with data_access_api.DataAccessApi(config=config_from_settings()) as dc:
             extents = dc.get_full_dataset_extent(**parameters)
             latitude = extents['latitude']
             longitude = extents['longitude']
@@ -123,3 +128,16 @@ def _get_transform_from_xr(dataset):
 
 def _ranges_intersect(x, y):
     return x[0] <= y[1] and y[0] <= x[1]
+
+
+def config_from_settings():
+    config = configparser.ConfigParser()
+    config['datacube'] = {
+        'db_password': settings.DATABASES['default']['PASSWORD'],
+        'db_connection_timeout': '60',
+        'db_username': settings.DATABASES['default']['USER'],
+        'db_database': settings.DATABASES['default']['NAME'],
+        'db_hostname': settings.DATABASES['default']['HOST']
+    }
+
+    return LocalConfig(config)
