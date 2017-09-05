@@ -34,19 +34,20 @@ class CoverageOffering(models.Model):
 
     def get_temporal_domain(self, iso8601=True):
         """The temporal domain is specified as one or more iso8601 datetimes"""
-        return CoverageTemporalDomainEntry.objects.filter(coverage_offering=self).order_by('date')
+        return [
+            date.get_timestring()
+            for date in CoverageTemporalDomainEntry.objects.filter(coverage_offering=self).order_by('date')
+        ]
 
     def get_rangeset(self):
         """Get the set of rangeset entries that match this coverage"""
         return CoverageRangesetEntry.objects.filter(coverage_offering=self).order_by('pk')
 
     def get_measurements(self):
-        with data_access_api.DataAccessApi() as dc:
-            return dc.dc.list_measurements().ix[self.name].index.values
+        return self.get_rangeset().values_list('band_name', flat=True)
 
     def get_nodata_values(self):
-        with data_access_api.DataAccessApi() as dc:
-            return dc.dc.list_measurements().ix[self.name]['nodata'].values
+        return self.get_rangeset().values_list('null_value', flat=True)
 
     @classmethod
     def update_or_create_coverages(cls, update_aux=False):
