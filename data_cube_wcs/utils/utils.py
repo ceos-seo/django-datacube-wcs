@@ -60,9 +60,9 @@ def get_stacked_dataset(parameters, individual_dates, date_ranges):
     if len(data_array) > 0:
         combined_data = xr.concat(data_array, 'time')
         data = combined_data.reindex({'time': sorted(combined_data.time.values)})
-        """if data.dims['time'] > 1:
+        if data.dims['time'] > 1:
             data = data.apply(
-                lambda ds: ds.where(ds != ds.nodata).mean('time', skipna=True).fillna(ds.nodata), keep_attrs=True)"""
+                lambda ds: ds.where(ds != ds.nodata).mean('time', skipna=True).fillna(ds.nodata), keep_attrs=True)
         _clear_attrs(data)
         data = data.isel(time=0)
 
