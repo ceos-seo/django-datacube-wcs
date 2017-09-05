@@ -61,6 +61,13 @@ class GetCapabilitiesForm(BaseRequestForm):
                  ("WCS_Capabilities/ContentMetadata", "WCS_Capabilities/ContentMetadata")))
     UPDATESEQUENCE = forms.CharField(required=False)
 
+    def clean(self):
+        """Basic validation for the capabilities request"""
+        cleaned_data = super(BaseRequestForm, self).clean()
+
+        if 'UPDATESEQUENCE' in cleaned_data and cleaned_data['UPDATESEQUENCE'] != "0":
+            self.add_error("UPDATESEQUENCE", "")
+
 
 class GetCoverageForm(BaseRequestForm):
     """GetCoverage request form as defined by the OGC WCS 1.0 specification"""
