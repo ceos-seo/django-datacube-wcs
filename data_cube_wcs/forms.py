@@ -56,17 +56,18 @@ class GetCapabilitiesForm(BaseRequestForm):
 
     SECTION = forms.ChoiceField(
         required=False,
-        choices=(("WCS_Capabilities/Service", "WCS_Capabilities/Service"),
+        choices=(("/", "/"), ("WCS_Capabilities/Service", "WCS_Capabilities/Service"),
                  ("WCS_Capabilities/Capability", "WCS_Capabilities/Capability"),
                  ("WCS_Capabilities/ContentMetadata", "WCS_Capabilities/ContentMetadata")))
     UPDATESEQUENCE = forms.CharField(required=False)
 
     def clean(self):
         """Basic validation for the capabilities request"""
-        cleaned_data = super(BaseRequestForm, self).clean()
+        cleaned_data = super(GetCapabilitiesForm, self).clean()
 
-        if 'UPDATESEQUENCE' in cleaned_data and cleaned_data['UPDATESEQUENCE'] != "0":
-            self.add_error("UPDATESEQUENCE", "")
+        # commented out as I'm not currently messing with the update sequence stuff.
+        # if 'UPDATESEQUENCE' in cleaned_data and cleaned_data['UPDATESEQUENCE'] != "0":
+        #     self.add_error("UPDATESEQUENCE", "")
 
 
 class GetCoverageForm(BaseRequestForm):

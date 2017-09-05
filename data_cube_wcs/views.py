@@ -27,7 +27,7 @@ class WebService(View):
                 'exception_code': "InvalidParameterValue",
                 'error_msg': "Invalid request or service parameter."
             })
-            response['Content-Type'] = 'text/xml; charset=UTF-8;'
+            response['Content-Type'] = 'application/vnd.ogc.se_xml'
             return response
 
         service = base_request_form.cleaned_data.get('SERVICE', 'WCS')
@@ -68,7 +68,7 @@ class GetCapabilities(View):
                 'exception_code': "InvalidParameterValue",
                 'error_msg': "Invalid section value."
             })
-            response['Content-Type'] = 'text/xml; charset=UTF-8;'
+            response['Content-Type'] = 'application/vnd.ogc.se_xml'
             return response
 
         section_map = {
@@ -82,7 +82,8 @@ class GetCapabilities(View):
             'coverage_offerings': models.CoverageOffering.objects.all()
         }
         if 'SECTION' in get_capabilities_form.cleaned_data and get_capabilities_form.cleaned_data['SECTION']:
-            context['section'] = section_map[get_capabilities_form.cleaned_data['SECTION']]
+            context['section'] = section_map[get_capabilities_form.cleaned_data[
+                'SECTION']] if get_capabilities_form.cleaned_data['SECTION'] != "/" else None
 
         response = render_to_response('GetCapabilities.xml', context)
         response['Content-Type'] = 'text/xml; charset=UTF-8;'
@@ -118,8 +119,13 @@ class DescribeCoverage(View):
         coverages = models.CoverageOffering.objects.all()
         if 'COVERAGE' in request.GET:
             coverages = models.CoverageOffering.objects.filter(name__in=request.GET.get('COVERAGE').split(","))
-            if not coverages:
-                coverages = models.CoverageOffering.objects.all()
+            if len(coverages) != len(request.GET.get('COVERAGE').split(",")):
+                response = render_to_response('ServiceException.xml', {
+                    'exception_code': "InvalidParameterValue",
+                    'error_msg': "Invalid COVERAGE value."
+                })
+                response['Content-Type'] = 'application/vnd.ogc.se_xml'
+                return response
 
         response = render_to_response(
             'DescribeCoverage.xml',
