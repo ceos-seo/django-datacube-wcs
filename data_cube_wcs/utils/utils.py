@@ -1,6 +1,7 @@
 from django.apps import apps
 from datetime import datetime, timedelta
 import xarray as xr
+import numpy as np
 import collections
 from rasterio.io import MemoryFile
 
@@ -37,7 +38,8 @@ def get_stacked_dataset(parameters, individual_dates, date_ranges):
     """
 
     def _get_datetime_range_containing(*time_ranges):
-        return (min(time_ranges) - timedelta(microseconds=1), max(time_ranges) + timedelta(microseconds=1))
+        return (min(time_ranges) - timedelta(hours=4, microseconds=1),
+                max(time_ranges) + timedelta(hours=4, microseconds=1))
 
     def _clear_attrs(dataset):
         """Clear out all attributes on an xarray dataset to write to disk."""
@@ -52,8 +54,6 @@ def get_stacked_dataset(parameters, individual_dates, date_ranges):
     with data_access_api.DataAccessApi() as dc:
         for _range in full_date_ranges:
             product_data = dc.get_dataset_by_extent(time=_range, **parameters)
-            from celery.contrib import rdb
-            rdb.set_trace()
             if 'time' in product_data:
                 data_array.append(product_data.copy(deep=True))
 
@@ -62,6 +62,21 @@ def get_stacked_dataset(parameters, individual_dates, date_ranges):
         combined_data = xr.concat(data_array, 'time')
         data = combined_data.reindex({'time': sorted(combined_data.time.values)})
         _clear_attrs(data)
+
+    # if there isn't any data, we can assume that there was no data for the acquisition
+    if data is None:
+        with data_access_api.DataAccessApi() as dc:
+            extents = dc.get_full_dataset_extent(**parameters)
+            latitude = extents['latitude']
+            longitude = extents['longitude']
+            data = xr.Dataset(
+                {
+                    band: (('latitude', 'longitude'), np.full((len(latitude), len(longitude)), -9999))
+                    for band in parameters['measurements']
+                },
+                coords={'latitude': extents['latitude'],
+                        'longitude': extents['longitude']})
+
     return data
 
 
