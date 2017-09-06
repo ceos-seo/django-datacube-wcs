@@ -30,8 +30,8 @@ class WebService(View):
             response['Content-Type'] = 'application/vnd.ogc.se_xml'
             return response
 
-        service = base_request_form.cleaned_data.get('SERVICE', 'WCS')
-        _request = base_request_form.cleaned_data.get('REQUEST', 'GetCapabilities')
+        service = base_request_form.cleaned_data.get('service', 'WCS')
+        _request = base_request_form.cleaned_data.get('request', 'GetCapabilities')
 
         return view_mapping[service][_request].as_view()(request)
 
@@ -49,14 +49,14 @@ class GetCapabilities(View):
         """Handles the GET parameters for the GetCapabilities call, returning a formatted capabilities document
 
         GET data:
-            REQUEST: request type - fixed to "GetCapabilities"
-            VERSION (optional): version number of the WCS server - fixed to 1.0.0
-            SERVICE: service type - fixed to "WCS"
-            SECTION (optional): section of WCS capabilities document to be returned. Values include:
+            request: request type - fixed to "GetCapabilities"
+            version (optional): version number of the WCS server - fixed to 1.0.0
+            service: service type - fixed to "WCS"
+            section (optional): section of WCS capabilities document to be returned. Values include:
                 WCS_Capabilities/Service
                 WCS_Capabilities/Capability
                 WCS_Capabilities/ContentMetadata
-            UPDATESEQUENCE (optional): capabilities version - integer, a timestamp in [ISO 8601:1988] format, or any other number or string
+            updatesequence (optional): capabilities version - integer, a timestamp in [ISO 8601:1988] format, or any other number or string
 
         Returns:
             Validated capabilities document
@@ -81,9 +81,9 @@ class GetCapabilities(View):
             'base_url': request.build_absolute_uri().split('?')[0],
             'coverage_offerings': models.CoverageOffering.objects.all()
         }
-        if 'SECTION' in get_capabilities_form.cleaned_data and get_capabilities_form.cleaned_data['SECTION']:
+        if 'section' in get_capabilities_form.cleaned_data and get_capabilities_form.cleaned_data['section']:
             context['section'] = section_map[get_capabilities_form.cleaned_data[
-                'SECTION']] if get_capabilities_form.cleaned_data['SECTION'] != "/" else None
+                'section']] if get_capabilities_form.cleaned_data['section'] != "/" else None
 
         response = render_to_response('GetCapabilities.xml', context)
         response['Content-Type'] = 'text/xml; charset=UTF-8;'
@@ -106,10 +106,10 @@ class DescribeCoverage(View):
         """Handles the GET parameters for the DescribeCoverage call, returning a formatted coverage description document
 
         GET data:
-            REQUEST: request type - fixed to "DescribeCoverage"
-            VERSION (optional): version number of the WCS server - fixed to 1.0.0
-            SERVICE: service type - fixed to "WCS"
-            COVERAGE (optional): comma seperated list of coverages to described - identified using the name values from
+            request: request type - fixed to "DescribeCoverage"
+            version (optional): version number of the WCS server - fixed to 1.0.0
+            service: service type - fixed to "WCS"
+            coverage (optional): comma seperated list of coverages to described - identified using the name values from
                 the capabilities document.
 
         Returns:
@@ -117,12 +117,12 @@ class DescribeCoverage(View):
 
         """
         coverages = models.CoverageOffering.objects.all()
-        if 'COVERAGE' in request.GET:
-            coverages = models.CoverageOffering.objects.filter(name__in=request.GET.get('COVERAGE').split(","))
-            if len(coverages) != len(request.GET.get('COVERAGE').split(",")):
+        if 'coverage' in request.GET:
+            coverages = models.CoverageOffering.objects.filter(name__in=request.GET.get('coverage').split(","))
+            if len(coverages) != len(request.GET.get('coverage').split(",")):
                 response = render_to_response('ServiceException.xml', {
                     'exception_code': "InvalidParameterValue",
-                    'error_msg': "Invalid COVERAGE value."
+                    'error_msg': "Invalid coverage value."
                 })
                 response['Content-Type'] = 'application/vnd.ogc.se_xml'
                 return response
@@ -155,31 +155,31 @@ class GetCoverage(View):
         """Handles the GET parameters for the GetCoverage call, returning a dataset
 
         GET data:
-            REQUEST: request type - fixed to "GetCoverage"
-            VERSION (optional): version number of the WCS server - fixed to 1.0.0
-            SERVICE: service type - fixed to "WCS"
-            COVERAGE (optional): coverage to return - identified using the name value from the capabilities document.
-            CRS: Coordinate Reference System in which the request is expressed.
-            RESPONSE_CRS (optional): Coordinate Reference System in which to express coverage responses.Defaults to the request CRS.
-            BBOX: Request a subset defined by the specified bounding box, with min/max coordinate pairs ordered according to the Co-ordinate
-                Reference System identified by the CRS parameter. One of BBOX or TIME is required. Comma seperated string like
+            request: request type - fixed to "GetCoverage"
+            version (optional): version number of the WCS server - fixed to 1.0.0
+            service: service type - fixed to "WCS"
+            coverage (optional): coverage to return - identified using the name value from the capabilities document.
+            crs: Coordinate Reference System in which the request is expressed.
+            response_crs (optional): Coordinate Reference System in which to express coverage responses.Defaults to the request crs.
+            bbox: Request a subset defined by the specified bounding box, with min/max coordinate pairs ordered according to the Co-ordinate
+                Reference System identified by the crs parameter. One of bbox or time is required. Comma seperated string like
                 minx, miny, maxx, maxy
-            TIME: Request a subset corresponding to the specified time instants or intervals, expressed in an extended ISO 8601 syntax.
+            time: Request a subset corresponding to the specified time instants or intervals, expressed in an extended ISO 8601 syntax.
                 Optional if a default time (or fixed time, or no time) is de-fined for the selected layer. Comma seperated string like:
                 time1,time2,time3... or min/max
 
-            WIDTH and HEIGHT: Request a grid of the specified width (w), height (h), and [for 3D grids] depth (d) (integer number of gridpoints).
-                Either these or RESX, RESY, [for 3D grids] RESZ are required.
+            width and height: Request a grid of the specified width (w), height (h), and [for 3D grids] depth (d) (integer number of gridpoints).
+                Either these or resx, resy, [for 3D grids] RESZ are required.
 
-            RESX and RESY: Request a coverage subset with a specific spatial resolution along each axis of the reply CRS.
-                The values are given in the units appropriate to each axis of the CRS. Either these or WIDTH, HEIGHT
+            resx and resy: Request a coverage subset with a specific spatial resolution along each axis of the reply crs.
+                The values are given in the units appropriate to each axis of the crs. Either these or width, height
 
-            INTERPOLATION:Requested spatial interpolation method for resampling cov-erage values into the desired output grid.
+            interpolation:Requested spatial interpolation method for resampling cov-erage values into the desired output grid.
                 interpolation-method must be one of the values listed in the supportedInterpolations element of the requested
                 CoverageOffering. Optional; server-defined default as stated in 8.3.6.
-            FORMAT: Requested output format of Coverage. Must be one of those listed under the description of the selected coverage.
+            format: Requested output format of Coverage. Must be one of those listed under the description of the selected coverage.
 
-            EXCEPTIONS (optional): string fixed to application/vnd.ogc.se_xml
+            exceptions (optional): string fixed to application/vnd.ogc.se_xml
 
             PARAMETER (optional): any number of optional key/val pairs like band=1,2,3 or age-1,18. The parameter name should match
                 the name of an AxisDescription element
@@ -204,6 +204,6 @@ class GetCoverage(View):
 
         response_mapping = {'GeoTIFF': utils.get_tiff_response, 'netCDF': utils.get_netcdf_response}
         return HttpResponse(
-            response_mapping[coverage_data.cleaned_data['FORMAT']](coverage_data.cleaned_data['COVERAGE'], dataset,
-                                                                   coverage_data.cleaned_data['RESPONSE_CRS']),
-            content_type=forms.AVAILABLE_FORMATS[coverage_data.cleaned_data['FORMAT']])
+            response_mapping[coverage_data.cleaned_data['format']](coverage_data.cleaned_data['coverage'], dataset,
+                                                                   coverage_data.cleaned_data['response_crs']),
+            content_type=forms.AVAILABLE_FORMATS[coverage_data.cleaned_data['format']])

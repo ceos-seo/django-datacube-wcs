@@ -11,25 +11,25 @@ exception_codes = [
 ]
 
 field_exception_map = {
-    'REQUEST': 'InvalidParameterValue',
-    'VERSION': 'InvalidParameterValue',
-    'SERVICE': 'InvalidParameterValue',
-    'SECTION': 'InvalidParameterValue',
-    'UPDATESEQUENCE': 'InvalidParameterValue',
-    'COVERAGE': 'InvalidParameterValue',
-    'CRS': 'InvalidParameterValue',
-    'RESPONSE_CRS': 'InvalidParameterValue',
-    'BBOX': 'InvalidParameterValue',
-    'TIME': 'InvalidParameterValue',
-    'WIDTH': 'InvalidParameterValue',
-    'HEIGHT': 'InvalidParameterValue',
-    'RESX': 'InvalidParameterValue',
-    'RESY': 'InvalidParameterValue',
-    'HEIGHT': 'InvalidParameterValue',
-    'WIDTH': 'InvalidParameterValue',
-    'INTERPOLATION': 'InvalidParameterValue',
-    'FORMAT': 'InvalidFormat',
-    'EXCEPTIONS': 'InvalidParameterValue',
+    'request': 'InvalidParameterValue',
+    'version': 'InvalidParameterValue',
+    'service': 'InvalidParameterValue',
+    'section': 'InvalidParameterValue',
+    'updatesequence': 'InvalidParameterValue',
+    'coverage': 'InvalidParameterValue',
+    'crs': 'InvalidParameterValue',
+    'response_crs': 'InvalidParameterValue',
+    'bbox': 'InvalidParameterValue',
+    'time': 'InvalidParameterValue',
+    'width': 'InvalidParameterValue',
+    'height': 'InvalidParameterValue',
+    'resx': 'InvalidParameterValue',
+    'resy': 'InvalidParameterValue',
+    'height': 'InvalidParameterValue',
+    'width': 'InvalidParameterValue',
+    'interpolation': 'InvalidParameterValue',
+    'format': 'InvalidFormat',
+    'exceptions': 'InvalidParameterValue',
     'measurements': 'InvalidParameterValue'
 }
 
@@ -43,70 +43,70 @@ INTERPOLATION_OPTIONS = {'nearest neighbor': 'nearest', 'bilinear': 'bilinear', 
 class BaseRequestForm(forms.Form):
     """Base WCS request parameters as defined by the OGC WCS 1.0 specification"""
 
-    REQUEST = forms.ChoiceField(
+    request = forms.ChoiceField(
         choices=(("GetCapabilities", "GetCapabilities"), ("DescribeCoverage", "DescribeCoverage"),
                  ("GetCoverage", "GetCoverage")),
         initial="GetCapabilities")
-    VERSION = forms.CharField(required=False, initial="1.0.0")
-    SERVICE = forms.ChoiceField(choices=(("WCS", "WCS"), ("WMS", "WMS")), initial="WCS")
+    version = forms.CharField(required=False, initial="1.0.0")
+    service = forms.ChoiceField(choices=(("WCS", "WCS"), ("WMS", "WMS")), initial="WCS")
 
 
 class GetCapabilitiesForm(BaseRequestForm):
     """GetCapabilities request form as defined by the OGC WCS 1.0 specification"""
 
-    SECTION = forms.ChoiceField(
+    section = forms.ChoiceField(
         required=False,
         choices=(("/", "/"), ("WCS_Capabilities/Service", "WCS_Capabilities/Service"),
                  ("WCS_Capabilities/Capability", "WCS_Capabilities/Capability"),
                  ("WCS_Capabilities/ContentMetadata", "WCS_Capabilities/ContentMetadata")))
-    UPDATESEQUENCE = forms.CharField(required=False)
+    updatesequence = forms.CharField(required=False)
 
     def clean(self):
         """Basic validation for the capabilities request"""
         cleaned_data = super(GetCapabilitiesForm, self).clean()
 
         # commented out as I'm not currently messing with the update sequence stuff.
-        # if 'UPDATESEQUENCE' in cleaned_data and cleaned_data['UPDATESEQUENCE'] != "0":
-        #     self.add_error("UPDATESEQUENCE", "")
+        # if 'updatesequence' in cleaned_data and cleaned_data['updatesequence'] != "0":
+        #     self.add_error("updatesequence", "")
 
 
 class GetCoverageForm(BaseRequestForm):
     """GetCoverage request form as defined by the OGC WCS 1.0 specification"""
-    COVERAGE = forms.ModelChoiceField(queryset=models.CoverageOffering.objects.all(), to_field_name="name")
+    coverage = forms.ModelChoiceField(queryset=models.CoverageOffering.objects.all(), to_field_name="name")
 
-    CRS = forms.ChoiceField(choices=((option, option) for option in AVAILABLE_INPUT_CRS), initial="EPSG:4326")
-    RESPONSE_CRS = forms.ChoiceField(
+    crs = forms.ChoiceField(choices=((option, option) for option in AVAILABLE_INPUT_CRS), initial="EPSG:4326")
+    response_crs = forms.ChoiceField(
         required=False, choices=((option, option) for option in AVAILABLE_OUTPUT_CRS), initial="EPSG:4326")
 
     # One of the following is required.
-    BBOX = forms.CharField(required=False)
-    TIME = forms.CharField(required=False)
+    bbox = forms.CharField(required=False)
+    time = forms.CharField(required=False)
 
     # either width/height or resx/resy are required as a pair
-    WIDTH = forms.IntegerField(required=False)
-    HEIGHT = forms.IntegerField(required=False)
-    RESX = forms.FloatField(required=False)
-    RESY = forms.FloatField(required=False)
+    width = forms.IntegerField(required=False)
+    height = forms.IntegerField(required=False)
+    resx = forms.FloatField(required=False)
+    resy = forms.FloatField(required=False)
 
-    INTERPOLATION = forms.ChoiceField(
+    interpolation = forms.ChoiceField(
         required=False, choices=((option, option) for option in INTERPOLATION_OPTIONS), initial="nearest neighbor")
-    FORMAT = forms.ChoiceField(choices=((option, option) for option in AVAILABLE_FORMATS), initial="GTiff")
-    EXCEPTIONS = forms.CharField(required=False, initial="application/vnd.ogc.se_xml")
+    format = forms.ChoiceField(choices=((option, option) for option in AVAILABLE_FORMATS), initial="GTiff")
+    exceptions = forms.CharField(required=False, initial="application/vnd.ogc.se_xml")
 
     #measurements are the only parameters available as an AxisDescription/rangeset
     measurements = forms.CharField(required=False)
 
     def clean_RESPONSE_CRS(self):
         """Meant to provide actual default values for various form fields if missing from GET"""
-        if not self['RESPONSE_CRS'].html_name in self.data:
-            return self.fields['RESPONSE_CRS'].initial
-        return self.cleaned_data['RESPONSE_CRS']
+        if not self['response_crs'].html_name in self.data:
+            return self.fields['response_crs'].initial
+        return self.cleaned_data['response_crs']
 
     def clean_INTERPOLATION(self):
         """Meant to provide actual default values for various form fields if missing from GET"""
-        if not self['INTERPOLATION'].html_name in self.data:
-            return self.fields['INTERPOLATION'].initial
-        return self.cleaned_data['INTERPOLATION']
+        if not self['interpolation'].html_name in self.data:
+            return self.fields['interpolation'].initial
+        return self.cleaned_data['interpolation']
 
     def clean(self):
         """Basic validation of the GetCoverage parameters according to the OGC WCS 1.0 specification.
@@ -119,19 +119,19 @@ class GetCoverageForm(BaseRequestForm):
         """
         cleaned_data = super(GetCoverageForm, self).clean()
 
-        if 'COVERAGE' not in cleaned_data:
-            self.add_error("COVERAGE", "Invalid or missing COVERAGE parameter")
+        if 'coverage' not in cleaned_data:
+            self.add_error("coverage", "Invalid or missing coverage parameter")
             return
 
-        if not (cleaned_data['BBOX'] or cleaned_data['TIME']):
-            self.add_error("BBOX", "Invalid BBOX/TIME inputs: One of BBOX or TIME is required.")
-            self.add_error("TIME", "Invalid BBOX/TIME inputs: One of BBOX or TIME is required.")
+        if not (cleaned_data['bbox'] or cleaned_data['time']):
+            self.add_error("bbox", "Invalid bbox/time inputs: One of bbox or time is required.")
+            self.add_error("time", "Invalid bbox/time inputs: One of bbox or time is required.")
             return
 
-        coverage_offering = self.cleaned_data['COVERAGE']
+        coverage_offering = self.cleaned_data['coverage']
 
-        if cleaned_data.get('BBOX', None):
-            split_bbox = self.cleaned_data['BBOX'].split(",")
+        if cleaned_data.get('bbox', None):
+            split_bbox = self.cleaned_data['bbox'].split(",")
 
             latitude_range = (float(split_bbox[1]), float(split_bbox[3]))
             longitude_range = (float(split_bbox[0]), float(split_bbox[2]))
@@ -147,8 +147,8 @@ class GetCoverageForm(BaseRequestForm):
             # if the ranges are not well formed...
             if True in validation_cases:
                 self.add_error(
-                    'BBOX',
-                    "Invalid BBOX input: Upper bounds must be greater than the lower bound and the bounds must intersect with the coverage."
+                    'bbox',
+                    "Invalid bbox input: Upper bounds must be greater than the lower bound and the bounds must intersect with the coverage."
                 )
                 return
 
@@ -158,23 +158,23 @@ class GetCoverageForm(BaseRequestForm):
             self.cleaned_data['latitude'] = (coverage_offering.min_latitude, coverage_offering.max_latitude)
             self.cleaned_data['longitude'] = (coverage_offering.min_longitude, coverage_offering.max_longitude)
 
-        if cleaned_data.get('TIME', None):
+        if cleaned_data.get('time', None):
             time_ranges = []
             times = []
             # time ranges currently not supported really as they don't apply to our usage of the DC
-            _time_type_range = '/' in self.cleaned_data['TIME']
+            _time_type_range = '/' in self.cleaned_data['time']
             if _time_type_range:
-                time_range = self.cleaned_data['TIME'].split(",")
+                time_range = self.cleaned_data['time'].split(",")
                 time_ranges = map(lambda r: r.split("/"), time_range)
                 time_ranges = list(map(lambda r: (parser.parse(r[0]), parser.parse(r[1])), time_ranges))
             else:
-                date_list = self.cleaned_data['TIME'].split(",")
+                date_list = self.cleaned_data['time'].split(",")
                 times = list(map(lambda t: parser.parse(t), date_list))
                 valid_times = coverage_offering.get_temporal_domain()
                 if len(list(set(valid_times) & set(date_list))) != len(date_list):
                     self.add_error(
-                        "TIME",
-                        "TIME values must correspond with the time positions advertised in the coverage description.")
+                        "time",
+                        "time values must correspond with the time positions advertised in the coverage description.")
 
             self.cleaned_data['time_ranges'] = time_ranges
             self.cleaned_data['times'] = times
@@ -182,25 +182,25 @@ class GetCoverageForm(BaseRequestForm):
             self.cleaned_data['time_ranges'] = [(coverage_offering.start_time, coverage_offering.end_time)]
             self.cleaned_data['times'] = []
 
-        if (cleaned_data.get('RESX', None) and cleaned_data.get('RESY', None)):
-            if cleaned_data['RESX'] < 0 or cleaned_data['RESY'] > 0:
-                self.add_error('RESX', "Invalid RESX parameter: RESX must be greater than zero.")
-                self.add_error('RESY', "Invalid RESY parameter: RESY must be less than zero.")
+        if (cleaned_data.get('resx', None) and cleaned_data.get('resy', None)):
+            if cleaned_data['resx'] < 0 or cleaned_data['resy'] > 0:
+                self.add_error('resx', "Invalid resx parameter: resx must be greater than zero.")
+                self.add_error('resy', "Invalid resy parameter: resy must be less than zero.")
                 return
-        elif (cleaned_data.get('WIDTH', None) and cleaned_data.get('HEIGHT', None)):
-            if cleaned_data['HEIGHT'] < 0 or cleaned_data['WIDTH'] < 0:
-                self.add_error('HEIGHT', "Invalid HEIGHT/WIDTH parameters: HEIGHT/WIDTH must be greater than zero.")
-                self.add_error('WIDTH', "Invalid HEIGHT/WIDTH parameters: HEIGHT/WIDTH must be greater than zero.")
+        elif (cleaned_data.get('width', None) and cleaned_data.get('height', None)):
+            if cleaned_data['height'] < 0 or cleaned_data['width'] < 0:
+                self.add_error('height', "Invalid height/width parameters: height/width must be greater than zero.")
+                self.add_error('width', "Invalid height/width parameters: height/width must be greater than zero.")
                 return
-            self.cleaned_data['RESX'] = (
-                self.cleaned_data['longitude'][1] - self.cleaned_data['longitude'][0]) / cleaned_data['WIDTH']
-            self.cleaned_data['RESY'] = -1 * (
-                self.cleaned_data['latitude'][1] - self.cleaned_data['latitude'][0]) / cleaned_data['HEIGHT']
+            self.cleaned_data['resx'] = (
+                self.cleaned_data['longitude'][1] - self.cleaned_data['longitude'][0]) / cleaned_data['width']
+            self.cleaned_data['resy'] = -1 * (
+                self.cleaned_data['latitude'][1] - self.cleaned_data['latitude'][0]) / cleaned_data['height']
         else:
-            self.add_error('RESX', "One of RESX/RESY or HEIGHT/WIDTH is required.")
-            self.add_error('RESY', "One of RESX/RESY or HEIGHT/WIDTH is required.")
-            self.add_error('HEIGHT', "One of RESX/RESY or HEIGHT/WIDTH is required.")
-            self.add_error('WIDTH', "One of RESX/RESY or HEIGHT/WIDTH is required.")
+            self.add_error('resx', "One of resx/resy or height/width is required.")
+            self.add_error('resy', "One of resx/resy or height/width is required.")
+            self.add_error('height', "One of resx/resy or height/width is required.")
+            self.add_error('width', "One of resx/resy or height/width is required.")
             return
 
         if cleaned_data.get('measurements', None):
@@ -215,4 +215,4 @@ class GetCoverageForm(BaseRequestForm):
         else:
             self.cleaned_data['measurements'] = coverage_offering.get_measurements()
 
-        self.cleaned_data['resampling'] = INTERPOLATION_OPTIONS.get(self.cleaned_data['INTERPOLATION'], 'nearest')
+        self.cleaned_data['resampling'] = INTERPOLATION_OPTIONS.get(self.cleaned_data['interpolation'], 'nearest')

@@ -18,12 +18,12 @@ def form_to_data_cube_parameters(form_instance):
     date_ranges = form_instance.cleaned_data['time_ranges']
 
     return {
-        'product': form_instance.cleaned_data['COVERAGE'].name,
+        'product': form_instance.cleaned_data['coverage'].name,
         'latitude': form_instance.cleaned_data['latitude'],
         'longitude': form_instance.cleaned_data['longitude'],
         'measurements': form_instance.cleaned_data['measurements'],
-        'resolution': (form_instance.cleaned_data['RESY'], form_instance.cleaned_data['RESX']),
-        'crs': form_instance.cleaned_data['CRS'],
+        'resolution': (form_instance.cleaned_data['resy'], form_instance.cleaned_data['resx']),
+        'crs': form_instance.cleaned_data['crs'],
         'resampling': form_instance.cleaned_data['resampling']
     }, individual_dates, date_ranges
 
