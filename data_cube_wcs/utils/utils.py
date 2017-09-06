@@ -69,7 +69,7 @@ def get_stacked_dataset(parameters, individual_dates, date_ranges):
             data = data.apply(
                 lambda ds: ds.where(ds != ds.nodata).mean('time', skipna=True).fillna(ds.nodata), keep_attrs=True)
         _clear_attrs(data)
-        data = data.isel(time=0)
+        data = data.isel(time=0, drop=True)
 
     # if there isn't any data, we can assume that there was no data for the acquisition
     if data is None:
@@ -131,6 +131,8 @@ def _ranges_intersect(x, y):
 
 
 def config_from_settings():
+    if hasattr(settings, 'DATACUBE_CONF_PATH'):
+        return settings.DATACUBE_CONF_PATH
     config = configparser.ConfigParser()
     config['datacube'] = {
         'db_password': settings.DATABASES['default']['PASSWORD'],

@@ -202,9 +202,6 @@ class GetCoverage(View):
 
         dataset = utils.get_stacked_dataset(dc_parameters, individual_dates, date_ranges)
 
-        if 'time' in dataset:
-            dataset = dataset.isel(time=0)
-
         response_mapping = {'GeoTIFF': utils.get_tiff_response, 'netCDF': utils.get_netcdf_response}
         return HttpResponse(
             response_mapping[coverage_data.cleaned_data['FORMAT']](coverage_data.cleaned_data['COVERAGE'], dataset,
