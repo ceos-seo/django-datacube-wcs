@@ -2,7 +2,7 @@
 Django Data Cube WCS
 ======================
 
-A(n) (mostly) OGC compliant WCS server for a Data Cube instance. This app uses an existing Data Cube installation and allows external toolsets to use the data using a WCS connection. Models are automatically generated for Data Cube products using the Data Cube API and all data is managed automatically. Range subsetting is enabled via the GET parameter 'measurements'.
+A(n) (mostly) OGC compliant WCS server for a Data Cube instance. This app uses an existing Data Cube installation and allows external toolsets to use the data using a WCS connection. Models are automatically generated for Data Cube products using the Data Cube API and all data is managed automatically. Range subsetting is enabled via the GET parameter 'measurements'. As of the current version, only GET/KVP is supported - POST and XML encoding is left out for simplicities sake.
 
 More information about the specification can be found [here](http://portal.opengeospatial.org/files/05-076&passcode=97mkvnjf54t6mph0yryk) or in the docs directory of this repository. The test specification implemented is based on the published teamengine implementation found [here](https://cite.opengeospatial.org/teamengine/about/wcs/1.0.0/site/testreq.html).
 
@@ -41,6 +41,11 @@ CoverageOffering.update_or_create_coverages(update_aux=True)
 5. Modify your database settings or add a new settings variable for your Data Cube database. Either put an absolute path to a .datacube.conf file in the DATACUBE_CONF_PATH settings variable or ensure that your default database is the same as your Data Cube database. The default database settings must have the same hostname, username, and password as your .datacube.conf file.
 
 6. Restart your webserver
+
+7. Run tests if desired. Change the base url in the test/test_wcs_spec.py file and run the tests with nose
+```
+nosetests
+```
 
 Usage
 ------------
