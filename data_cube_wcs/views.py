@@ -200,7 +200,7 @@ class GetCoverage(View):
                     'exception_code': forms.field_exception_map[error],
                     'error_msg': "Invalid or missing {} value.".format(error)
                 })
-                response['Content-Type'] = 'text/xml; charset=UTF-8;'
+                response['Content-Type'] = 'application/vnd.ogc.se_xml'
                 return response
         dc_parameters, individual_dates, date_ranges = utils.form_to_data_cube_parameters(coverage_data)
 
