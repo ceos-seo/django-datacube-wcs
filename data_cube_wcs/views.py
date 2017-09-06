@@ -20,8 +20,8 @@ class WebService(View):
                 'GetCoverage': GetCoverage
             }
         }
-
-        base_request_form = forms.BaseRequestForm(request.GET)
+        get_data = {key.lower(): val for key, val in request.GET.items()}
+        base_request_form = forms.BaseRequestForm(get_data)
         if not base_request_form.is_valid():
             response = render_to_response('ServiceException.xml', {
                 'exception_code': "InvalidParameterValue",
@@ -62,7 +62,8 @@ class GetCapabilities(View):
             Validated capabilities document
         """
 
-        get_capabilities_form = forms.GetCapabilitiesForm(request.GET)
+        get_data = {key.lower(): val for key, val in request.GET.items()}
+        get_capabilities_form = forms.GetCapabilitiesForm(get_data)
         if not get_capabilities_form.is_valid():
             response = render_to_response('ServiceException.xml', {
                 'exception_code': "InvalidParameterValue",
@@ -116,10 +117,12 @@ class DescribeCoverage(View):
             Validated coverage description document
 
         """
+
         coverages = models.CoverageOffering.objects.all()
-        if 'coverage' in request.GET:
-            coverages = models.CoverageOffering.objects.filter(name__in=request.GET.get('coverage').split(","))
-            if len(coverages) != len(request.GET.get('coverage').split(",")):
+        get_data = {key.lower(): val for key, val in request.GET.items()}
+        if 'coverage' in get_data:
+            coverages = models.CoverageOffering.objects.filter(name__in=get_data.get('coverage').split(","))
+            if len(coverages) != len(get_data.get('coverage').split(",")):
                 response = render_to_response('ServiceException.xml', {
                     'exception_code': "InvalidParameterValue",
                     'error_msg': "Invalid coverage value."
@@ -189,7 +192,8 @@ class GetCoverage(View):
 
         """
 
-        coverage_data = forms.GetCoverageForm(request.GET)
+        get_data = {key.lower(): val for key, val in request.GET.items()}
+        coverage_data = forms.GetCoverageForm(get_data)
         if not coverage_data.is_valid():
             for error in coverage_data.errors:
                 response = render_to_response('ServiceException.xml', {
