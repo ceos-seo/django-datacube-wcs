@@ -120,12 +120,12 @@ class GetCoverageForm(BaseRequestForm):
         cleaned_data = super(GetCoverageForm, self).clean()
 
         if 'COVERAGE' not in cleaned_data:
-            self.add_error("COVERAGE", "")
+            self.add_error("COVERAGE", "Invalid or missing COVERAGE parameter")
             return
 
         if not (cleaned_data['BBOX'] or cleaned_data['TIME']):
-            self.add_error("BBOX", "")
-            self.add_error("TIME", "")
+            self.add_error("BBOX", "Invalid BBOX/TIME inputs: One of BBOX or TIME is required.")
+            self.add_error("TIME", "Invalid BBOX/TIME inputs: One of BBOX or TIME is required.")
             return
 
         coverage_offering = self.cleaned_data['COVERAGE']
@@ -146,7 +146,10 @@ class GetCoverageForm(BaseRequestForm):
 
             # if the ranges are not well formed...
             if True in validation_cases:
-                self.add_error('BBOX', "")
+                self.add_error(
+                    'BBOX',
+                    "Invalid BBOX input: Upper bounds must be greater than the lower bound and the bounds must intersect with the coverage."
+                )
                 return
 
             self.cleaned_data['latitude'] = latitude_range
@@ -166,6 +169,11 @@ class GetCoverageForm(BaseRequestForm):
             else:
                 date_list = self.cleaned_data['TIME'].split(",")
                 times = list(map(lambda t: parser.parse(t), date_list))
+                valid_times = coverage_offering.get_temporal_domain()
+                if len(list(set(valid_times) & set(date_list))) != len(date_list):
+                    self.add_error(
+                        "TIME",
+                        "TIME values must correspond with the time positions advertised in the coverage description.")
 
             self.cleaned_data['time_ranges'] = time_ranges
             self.cleaned_data['times'] = times
@@ -175,23 +183,23 @@ class GetCoverageForm(BaseRequestForm):
 
         if (cleaned_data.get('RESX', None) and cleaned_data.get('RESY', None)):
             if cleaned_data['RESX'] < 0 or cleaned_data['RESY'] > 0:
-                self.add_error('RESX', "")
-                self.add_error('RESY', "")
+                self.add_error('RESX', "Invalid RESX parameter: RESX must be greater than zero.")
+                self.add_error('RESY', "Invalid RESY parameter: RESY must be less than zero.")
                 return
         elif (cleaned_data.get('WIDTH', None) and cleaned_data.get('HEIGHT', None)):
             if cleaned_data['HEIGHT'] < 0 or cleaned_data['WIDTH'] < 0:
-                self.add_error('HEIGHT', "")
-                self.add_error('WIDTH', "")
+                self.add_error('HEIGHT', "Invalid HEIGHT/WIDTH parameters: HEIGHT/WIDTH must be greater than zero.")
+                self.add_error('WIDTH', "Invalid HEIGHT/WIDTH parameters: HEIGHT/WIDTH must be greater than zero.")
                 return
             self.cleaned_data['RESX'] = (
                 self.cleaned_data['longitude'][1] - self.cleaned_data['longitude'][0]) / cleaned_data['WIDTH']
             self.cleaned_data['RESY'] = -1 * (
                 self.cleaned_data['latitude'][1] - self.cleaned_data['latitude'][0]) / cleaned_data['HEIGHT']
         else:
-            self.add_error('RESX', "")
-            self.add_error('RESY', "")
-            self.add_error('HEIGHT', "")
-            self.add_error('WIDTH', "")
+            self.add_error('RESX', "One of RESX/RESY or HEIGHT/WIDTH is required.")
+            self.add_error('RESY', "One of RESX/RESY or HEIGHT/WIDTH is required.")
+            self.add_error('HEIGHT', "One of RESX/RESY or HEIGHT/WIDTH is required.")
+            self.add_error('WIDTH', "One of RESX/RESY or HEIGHT/WIDTH is required.")
             return
 
         if cleaned_data.get('measurements', None):
@@ -199,7 +207,8 @@ class GetCoverageForm(BaseRequestForm):
             request_measurements = cleaned_data['measurements'].split(",")
             # if the measurements aren't all valid, raise
             if len(list(set(valid_measurements) & set(request_measurements))) != len(request_measurements):
-                self.add_error("measurements", "")
+                self.add_error("measurements",
+                               "Measurements must correspond with the rangeset from the coverage description.")
             else:
                 self.cleaned_data['measurements'] = request_measurements
         else:

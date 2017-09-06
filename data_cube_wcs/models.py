@@ -36,7 +36,7 @@ class CoverageOffering(models.Model):
         """Get a iso8601 formatted datetime"""
         return self.end_time.isoformat()
 
-    def get_temporal_domain(self, iso8601=True):
+    def get_temporal_domain(self):
         """The temporal domain is specified as one or more iso8601 datetimes"""
         return [
             date.get_timestring()
