@@ -8,6 +8,7 @@
         <gml:pos>{{ coverage_offering.get_min_point }}</gml:pos>
         <gml:pos>{{ coverage_offering.get_max_point }}</gml:pos>
       </gml:Envelope>
+      <gml:RectifiedGrid></gml:RectifiedGrid>
     </spatialDomain>
     {% if coverage_offering.offer_temporal %}
       <temporalDomain>

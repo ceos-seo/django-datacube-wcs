@@ -48,9 +48,11 @@ class CoverageOffering(models.Model):
         return CoverageRangesetEntry.objects.filter(coverage_offering=self).order_by('pk')
 
     def get_measurements(self):
+        """Get a list of measurements for the coverage"""
         return self.get_rangeset().values_list('band_name', flat=True)
 
     def get_nodata_values(self):
+        """Get a list of nodata values for the coverage"""
         return self.get_rangeset().values_list('null_value', flat=True)
 
     @classmethod
@@ -97,6 +99,7 @@ class CoverageOffering(models.Model):
 
     @classmethod
     def create_temporal_domain(cls):
+        """Save off a series of date models for each coverage acquisition date"""
 
         def get_acquisition_dates(coverage):
             with datacube.Datacube(config=utils.config_from_settings()) as dc:
@@ -113,6 +116,7 @@ class CoverageOffering(models.Model):
 
     @classmethod
     def create_rangeset(cls):
+        """Save off a model for each band/nodata value"""
         with datacube.Datacube(config=utils.config_from_settings()) as dc:
             for coverage in cls.objects.all():
                 bands = dc.list_measurements().ix[coverage.name]
