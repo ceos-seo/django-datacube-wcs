@@ -161,6 +161,7 @@ class GetCoverageForm(BaseRequestForm):
         if cleaned_data.get('TIME', None):
             time_ranges = []
             times = []
+            # time ranges currently not supported really as they don't apply to our usage of the DC
             _time_type_range = '/' in self.cleaned_data['TIME']
             if _time_type_range:
                 time_range = self.cleaned_data['TIME'].split(",")
