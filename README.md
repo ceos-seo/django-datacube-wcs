@@ -2,7 +2,7 @@
 Django Data Cube WCS
 ======================
 
-A(n) (mostly) OGC compliant WCS server for a Data Cube instance. This app uses an existing Data Cube installation and allows external toolsets to use the data using a WCS connection. Models are automatically generated for Data Cube products using the Data Cube API and all data is managed automatically.
+A(n) (mostly) OGC compliant WCS server for a Data Cube instance. This app uses an existing Data Cube installation and allows external toolsets to use the data using a WCS connection. Models are automatically generated for Data Cube products using the Data Cube API and all data is managed automatically. Range subsetting is enabled via the GET parameter 'measurements'.
 
 More information about the specification can be found [here](http://portal.opengeospatial.org/files/05-076&passcode=97mkvnjf54t6mph0yryk) or in the docs directory of this repository. The test specification implemented is based on the published teamengine implementation found [here](https://cite.opengeospatial.org/teamengine/about/wcs/1.0.0/site/testreq.html).
 
@@ -48,7 +48,7 @@ Some sample use cases can be seen below:
 
 1.	GetCapabilities: http://192.168.100.14/wcs?SERVICE=WCS&REQUEST=GetCapabilities&VERSION=1.0.0
 2.	DescribeCoverage: http://192.168.100.14/wcs?SERVICE=WCS&REQUEST=DescribeCoverage&VERSION=1.0.0
-3.	GetCoverage: http://192.168.100.14/wcs?SERVICE=WCS&VERSION=1.0.0&REQUEST=GetCoverage&FORMAT=GeoTIFF&COVERAGE=ls7_ledaps_lake_baringo&TIME=2005-03-13T07:38:40&BBOX=35.94909958290008944,0.5126834831999999,36.44873960490009068,0.73776403679999991&CRS=EPSG:4326&RESPONSE_CRS=EPSG:4326&WIDTH=120&HEIGHT=120
+3.	GetCoverage: http://192.168.100.14/wcs?SERVICE=WCS&VERSION=1.0.0&REQUEST=GetCoverage&FORMAT=GeoTIFF&COVERAGE=ls7_ledaps_lake_baringo&TIME=2005-03-13T07:38:40&BBOX=35.94909958290008944,0.5126834831999999,36.44873960490009068,0.73776403679999991&CRS=EPSG:4326&RESPONSE_CRS=EPSG:4326&WIDTH=120&HEIGHT=120&measurements=red,green,blue
 
 You can replace the IP address with the address of your server. Additionally, you can visualize the data using QGIS by adding a new WCS layer like below:
 
