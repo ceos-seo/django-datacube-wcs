@@ -39,11 +39,33 @@ class TestWCSSpecification(unittest.TestCase):
         pass
 
     def test_basic_service_elements(self):
-        """https://cite.opengeospatial.org/teamengine/about/wcs/1.0.0/site/testreq.html#6-Basic%20Service%20Elements"""
+        """https://cite.opengeospatial.org/teamengine/about/wcs/1.0.0/site/testreq.html#6-Basic%20Service%20Elements
+
+        Handles section 6 of the test specification, includes the version numbering, exceptions, and basic http requests
+
+        """
+
         params_62 = dict(self.BASE_PARAMETERS)
         params_62['VERSION'] = ""
         response = self.query_server(params_62)
-        print(response)
+        soup = BeautifulSoup(response.text, 'xml')
+        self.assertTrue(soup.find('WCS_Capabilities').attrs['version'] == "1.0.0")
 
-    def query_server(self, query_dict):
-        return requests.get(self.BASE_WCS_URL, params=query_dict)
+        response = self.query_server()
+        self.assertTrue(soup.find('WCS_Capabilities').attrs['version'] == "1.0.0")
+
+        params_62 = dict(self.BASE_PARAMETERS)
+        params_62['VERSION'] = "1.0.2"
+        response = self.query_server(params_62)
+        self.assertTrue(soup.find('WCS_Capabilities').attrs['version'] == "1.0.0")
+
+        params_62 = dict(self.BASE_PARAMETERS)
+        params_62['VERSION'] = "0.8.0"
+        response = self.query_server(params_62)
+        self.assertTrue(soup.find('WCS_Capabilities').attrs['version'] == "1.0.0")
+
+        params_63 = dict(self.BASE_PARAMETERS)
+
+    def query_server(self, query_dict=None):
+
+        return requests.get(self.BASE_WCS_URL, params=(query_dict if query_dict else self.BASE_PARAMETERS))
