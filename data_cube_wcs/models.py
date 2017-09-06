@@ -2,7 +2,7 @@ from django.db import models
 from django.db import IntegrityError
 import pytz
 import datacube
-from .utils import utils
+from . import utils
 
 
 class CoverageOffering(models.Model):
@@ -113,7 +113,7 @@ class CoverageOffering(models.Model):
 
     @classmethod
     def create_rangeset(cls):
-        with data_access_api.DataAccessApi(config=utils.config_from_settings()) as dc:
+        with datacube.Datacube(config=utils.config_from_settings()) as dc:
             for coverage in cls.objects.all():
                 bands = dc.list_measurements().ix[coverage.name]
                 nodata_values = bands['nodata'].values

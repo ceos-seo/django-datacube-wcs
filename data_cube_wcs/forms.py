@@ -3,7 +3,7 @@ from django import forms
 from dateutil import parser
 
 from . import models
-from .utils import utils
+from . import utils
 
 exception_codes = [
     'InvalidFormat', 'CoverageNotDefined', 'CurrentUpdateSequence', 'InvalidUpdateSequence', 'MissingParameterValue',
@@ -128,9 +128,10 @@ class GetCoverageForm(BaseRequestForm):
             self.add_error("TIME", "")
             return
 
+        coverage_offering = self.cleaned_data['COVERAGE']
+
         if cleaned_data.get('BBOX', None):
             split_bbox = self.cleaned_data['BBOX'].split(",")
-            coverage_offering = self.cleaned_data['COVERAGE']
 
             latitude_range = (float(split_bbox[1]), float(split_bbox[3]))
             longitude_range = (float(split_bbox[0]), float(split_bbox[2]))
