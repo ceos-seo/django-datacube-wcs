@@ -1,8 +1,8 @@
 from django.db import models
 from django.db import IntegrityError
 import pytz
-
-from .utils import data_access_api, utils
+import datacube
+from .utils import utils
 
 
 class CoverageOffering(models.Model):
@@ -57,12 +57,15 @@ class CoverageOffering(models.Model):
     def update_or_create_coverages(cls, update_aux=False):
         """Uses the Data Cube data access api to update database representations of coverages"""
 
-        with data_access_api.DataAccessApi(config=utils.config_from_settings()) as dc:
-            product_details = dc.dc.list_products()[dc.dc.list_products()['format'] == "NetCDF"]
+        with datacube.Datacube(config=utils.config_from_settings()) as dc:
+            product_details = dc.list_products()[dc.list_products()['format'] == "NetCDF"]
             product_details['label'] = product_details.apply(
                 lambda row: "{} - {}".format(row['platform'], row['name']), axis=1)
 
-            extent_data = {product: dc.get_datacube_metadata(product) for product in product_details['name'].values}
+            extent_data = {
+                product: utils.get_datacube_metadata(dc, product)
+                for product in product_details['name'].values
+            }
 
             product_details['min_latitude'] = product_details.apply(
                 lambda row: extent_data[row['name']]['lat_extents'][0], axis=1)
@@ -96,8 +99,8 @@ class CoverageOffering(models.Model):
     def create_temporal_domain(cls):
 
         def get_acquisition_dates(coverage):
-            with data_access_api.DataAccessApi(config=utils.config_from_settings()) as dc:
-                return map(lambda d: d.replace(tzinfo=pytz.UTC), dc.list_acquisition_dates(coverage.name))
+            with datacube.Datacube(config=utils.config_from_settings()) as dc:
+                return map(lambda d: d.replace(tzinfo=pytz.UTC), utils.list_acquisition_dates(dc, coverage.name))
 
         for coverage in cls.objects.all():
             temporal_domain = [
@@ -112,7 +115,7 @@ class CoverageOffering(models.Model):
     def create_rangeset(cls):
         with data_access_api.DataAccessApi(config=utils.config_from_settings()) as dc:
             for coverage in cls.objects.all():
-                bands = dc.dc.list_measurements().ix[coverage.name]
+                bands = dc.list_measurements().ix[coverage.name]
                 nodata_values = bands['nodata'].values
                 band_names = bands.index.values
 

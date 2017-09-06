@@ -1,5 +1,5 @@
 from django.apps import apps
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 from django.conf import settings
 
 import xarray as xr
@@ -8,9 +8,8 @@ import collections
 from rasterio.io import MemoryFile
 
 from datacube.config import LocalConfig
+import datacube
 import configparser
-
-from . import data_access_api
 
 
 def form_to_data_cube_parameters(form_instance):
@@ -55,9 +54,9 @@ def get_stacked_dataset(parameters, individual_dates, date_ranges):
     full_date_ranges.extend(date_ranges)
 
     data_array = []
-    with data_access_api.DataAccessApi(config=config_from_settings()) as dc:
+    with datacube.Datacube(config=config_from_settings()) as dc:
         for _range in full_date_ranges:
-            product_data = dc.get_dataset_by_extent(time=_range, **parameters)
+            product_data = dc.load(time=_range, **parameters)
             if 'time' in product_data:
                 data_array.append(product_data.copy(deep=True))
 
@@ -73,8 +72,8 @@ def get_stacked_dataset(parameters, individual_dates, date_ranges):
 
     # if there isn't any data, we can assume that there was no data for the acquisition
     if data is None:
-        with data_access_api.DataAccessApi(config=config_from_settings()) as dc:
-            extents = dc.get_full_dataset_extent(**parameters)
+        with datacube.Datacube(config=config_from_settings()) as dc:
+            extents = dc.load(dask_chunks={}, **parameters)
             latitude = extents['latitude']
             longitude = extents['longitude']
             data = xr.Dataset(
@@ -86,6 +85,43 @@ def get_stacked_dataset(parameters, individual_dates, date_ranges):
                         'longitude': extents['longitude']}).astype('int16')
 
     return data
+
+
+def get_datacube_metadata(dc, product):
+    """"""
+    dataset = dc.load(product, dask_chunks={})
+
+    if not dataset:
+        return {
+            'lat_extents': (0, 0),
+            'lon_extents': (0, 0),
+            'time_extents': (date(2000, 1, 1), date(2000, 1, 1)),
+            'scene_count': 0,
+            'pixel_count': 0,
+            'tile_count': 0,
+            'storage_units': {}
+        }
+
+    lon_min, lat_min, lon_max, lat_max = dataset.geobox.extent.envelope
+    return {
+        'lat_extents': (lat_min, lat_max),
+        'lon_extents': (lon_min, lon_max),
+        'time_extents': (dataset.time[0].values.astype('M8[ms]').tolist(),
+                         dataset.time[-1].values.astype('M8[ms]').tolist()),
+        'tile_count':
+        dataset.time.size,
+        'pixel_count':
+        dataset.geobox.shape[0] * dataset.geobox.shape[1],
+    }
+
+
+def list_acquisition_dates(dc, product):
+    """"""
+    dataset = dc.load(product, dask_chunks={})
+
+    if not dataset:
+        return []
+    return dataset.time.values.astype('M8[ms]').tolist()
 
 
 def get_tiff_response(coverage_offering, dataset, crs):
@@ -105,7 +141,7 @@ def get_tiff_response(coverage_offering, dataset, crs):
     }
 
     dtype_list = [dataset[array].dtype for array in dataset.data_vars]
-    dtype = max(dtype_list, key=lambda d: supported_dtype_map[d])
+    dtype = str(max(dtype_list, key=lambda d: supported_dtype_map[str(d)]))
     rangeset = apps.get_model("data_cube_wcs.CoverageRangesetEntry").objects.filter(coverage_offering=coverage_offering)
 
     dataset = dataset.astype(dtype)
