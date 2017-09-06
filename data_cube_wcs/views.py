@@ -66,7 +66,7 @@ class GetCapabilities(View):
         get_capabilities_form = forms.GetCapabilitiesForm(get_data)
         if not get_capabilities_form.is_valid():
             response = render_to_response('ServiceException.xml', {
-                'exception_code': "InvalidParameterValue",
+                'exception_code': get_capabilities_form.errors[error][0],
                 'error_msg': "Invalid section value."
             })
             response['Content-Type'] = 'application/vnd.ogc.se_xml'
@@ -124,7 +124,7 @@ class DescribeCoverage(View):
             coverages = models.CoverageOffering.objects.filter(name__in=get_data.get('coverage').split(","))
             if len(coverages) != len(get_data.get('coverage').split(",")):
                 response = render_to_response('ServiceException.xml', {
-                    'exception_code': "InvalidParameterValue",
+                    'exception_code': "CoverageNotDefined",
                     'error_msg': "Invalid coverage value."
                 })
                 response['Content-Type'] = 'application/vnd.ogc.se_xml'
@@ -197,7 +197,7 @@ class GetCoverage(View):
         if not coverage_data.is_valid():
             for error in coverage_data.errors:
                 response = render_to_response('ServiceException.xml', {
-                    'exception_code': forms.field_exception_map[error],
+                    'exception_code': coverage_data.errors[error][0],
                     'error_msg': "Invalid or missing {} value.".format(error)
                 })
                 response['Content-Type'] = 'application/vnd.ogc.se_xml'

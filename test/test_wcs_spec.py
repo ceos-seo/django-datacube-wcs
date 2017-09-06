@@ -113,6 +113,16 @@ class TestWCSSpecification(unittest.TestCase):
         soup = BeautifulSoup(response.text, 'xml')
         self.assertTrue(soup.find('ServiceExceptionReport'))
 
+    def test_get_capabilities(self):
+        """https://cite.opengeospatial.org/teamengine/about/wcs/1.0.0/site/testreq.html#7-GetCapabilities%20Operation"""
+
+        # regarding 721 - our server has a static updatesequence set, so there is no way to test whether or not 721 will pass.
+
+        params_72 = {'VERSION': "", 'SERVICE': "WCS", 'REQUEST': "GetCapabilities", "UPDATESEQUENCE": "0"}
+        response = self.query_server(params_62)
+        soup = BeautifulSoup(response.text, 'xml')
+        self.assertTrue(soup.find('WCS_Capabilities').attrs['updateSequence'] == "")
+
     def query_server(self, query_dict=None):
 
         return requests.get(self.BASE_WCS_URL, params=(query_dict if query_dict else self.BASE_PARAMETERS))

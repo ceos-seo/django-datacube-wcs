@@ -10,29 +10,6 @@ exception_codes = [
     'InvalidParameterValue'
 ]
 
-field_exception_map = {
-    'request': 'InvalidParameterValue',
-    'version': 'InvalidParameterValue',
-    'service': 'InvalidParameterValue',
-    'section': 'InvalidParameterValue',
-    'updatesequence': 'InvalidParameterValue',
-    'coverage': 'InvalidParameterValue',
-    'crs': 'InvalidParameterValue',
-    'response_crs': 'InvalidParameterValue',
-    'bbox': 'InvalidParameterValue',
-    'time': 'InvalidParameterValue',
-    'width': 'InvalidParameterValue',
-    'height': 'InvalidParameterValue',
-    'resx': 'InvalidParameterValue',
-    'resy': 'InvalidParameterValue',
-    'height': 'InvalidParameterValue',
-    'width': 'InvalidParameterValue',
-    'interpolation': 'InvalidParameterValue',
-    'format': 'InvalidFormat',
-    'exceptions': 'InvalidParameterValue',
-    'measurements': 'InvalidParameterValue'
-}
-
 AVAILABLE_INPUT_CRS = ["EPSG:4326"]
 AVAILABLE_OUTPUT_CRS = ["EPSG:4326"]
 NATIVE_CRS = ["EPSG:4326"]
@@ -65,9 +42,13 @@ class GetCapabilitiesForm(BaseRequestForm):
         """Basic validation for the capabilities request"""
         cleaned_data = super(GetCapabilitiesForm, self).clean()
 
-        # commented out as I'm not currently messing with the update sequence stuff.
-        # if 'updatesequence' in cleaned_data and cleaned_data['updatesequence'] != "0":
-        #     self.add_error("updatesequence", "")
+        if 'updatesequence' in cleaned_data:
+            if cleaned_data['updatesequence'] == "0":
+                self.add_error("updatesequence", "CurrentUpdateSequence")
+                return
+            if cleaned_data['updatesequence'] > "0":
+                self.add_error("updatesequence", "InvalidUpdateSequence")
+                return
 
 
 class GetCoverageForm(BaseRequestForm):
@@ -90,7 +71,11 @@ class GetCoverageForm(BaseRequestForm):
 
     interpolation = forms.ChoiceField(
         required=False, choices=((option, option) for option in INTERPOLATION_OPTIONS), initial="nearest neighbor")
-    format = forms.ChoiceField(choices=((option, option) for option in AVAILABLE_FORMATS), initial="GTiff")
+    format = forms.ChoiceField(
+        choices=((option, option) for option in AVAILABLE_FORMATS),
+        initial="GeoTIFF",
+        error_messages={"required": "InvalidFormat",
+                        "invalid_choice": "InvalidFormat"})
     exceptions = forms.CharField(required=False, initial="application/vnd.ogc.se_xml")
 
     #measurements are the only parameters available as an AxisDescription/rangeset
@@ -120,12 +105,12 @@ class GetCoverageForm(BaseRequestForm):
         cleaned_data = super(GetCoverageForm, self).clean()
 
         if 'coverage' not in cleaned_data:
-            self.add_error("coverage", "Invalid or missing coverage parameter")
+            self.add_error("coverage", "MissingParameterValue")
             return
 
         if not (cleaned_data['bbox'] or cleaned_data['time']):
-            self.add_error("bbox", "Invalid bbox/time inputs: One of bbox or time is required.")
-            self.add_error("time", "Invalid bbox/time inputs: One of bbox or time is required.")
+            self.add_error("bbox", "MissingParameterValue")
+            self.add_error("time", "MissingParameterValue")
             return
 
         coverage_offering = self.cleaned_data['coverage']
@@ -146,10 +131,7 @@ class GetCoverageForm(BaseRequestForm):
 
             # if the ranges are not well formed...
             if True in validation_cases:
-                self.add_error(
-                    'bbox',
-                    "Invalid bbox input: Upper bounds must be greater than the lower bound and the bounds must intersect with the coverage."
-                )
+                self.add_error('bbox', "InvalidParameterValue")
                 return
 
             self.cleaned_data['latitude'] = latitude_range
@@ -172,9 +154,7 @@ class GetCoverageForm(BaseRequestForm):
                 times = list(map(lambda t: parser.parse(t), date_list))
                 valid_times = coverage_offering.get_temporal_domain()
                 if len(list(set(valid_times) & set(date_list))) != len(date_list):
-                    self.add_error(
-                        "time",
-                        "time values must correspond with the time positions advertised in the coverage description.")
+                    self.add_error("time", "InvalidParameterValue")
 
             self.cleaned_data['time_ranges'] = time_ranges
             self.cleaned_data['times'] = times
@@ -184,23 +164,23 @@ class GetCoverageForm(BaseRequestForm):
 
         if (cleaned_data.get('resx', None) and cleaned_data.get('resy', None)):
             if cleaned_data['resx'] < 0 or cleaned_data['resy'] > 0:
-                self.add_error('resx', "Invalid resx parameter: resx must be greater than zero.")
-                self.add_error('resy', "Invalid resy parameter: resy must be less than zero.")
+                self.add_error('resx', "InvalidParameterValue")
+                self.add_error('resy', "InvalidParameterValue")
                 return
         elif (cleaned_data.get('width', None) and cleaned_data.get('height', None)):
             if cleaned_data['height'] < 0 or cleaned_data['width'] < 0:
-                self.add_error('height', "Invalid height/width parameters: height/width must be greater than zero.")
-                self.add_error('width', "Invalid height/width parameters: height/width must be greater than zero.")
+                self.add_error('height', "InvalidParameterValue")
+                self.add_error('width', "InvalidParameterValue")
                 return
             self.cleaned_data['resx'] = (
                 self.cleaned_data['longitude'][1] - self.cleaned_data['longitude'][0]) / cleaned_data['width']
             self.cleaned_data['resy'] = -1 * (
                 self.cleaned_data['latitude'][1] - self.cleaned_data['latitude'][0]) / cleaned_data['height']
         else:
-            self.add_error('resx', "One of resx/resy or height/width is required.")
-            self.add_error('resy', "One of resx/resy or height/width is required.")
-            self.add_error('height', "One of resx/resy or height/width is required.")
-            self.add_error('width', "One of resx/resy or height/width is required.")
+            self.add_error('resx', "MissingParameterValue")
+            self.add_error('resy', "MissingParameterValue")
+            self.add_error('height', "MissingParameterValue")
+            self.add_error('width', "MissingParameterValue")
             return
 
         if cleaned_data.get('measurements', None):
@@ -208,8 +188,7 @@ class GetCoverageForm(BaseRequestForm):
             request_measurements = cleaned_data['measurements'].split(",")
             # if the measurements aren't all valid, raise
             if len(list(set(valid_measurements) & set(request_measurements))) != len(request_measurements):
-                self.add_error("measurements",
-                               "Measurements must correspond with the rangeset from the coverage description.")
+                self.add_error("measurements", "InvalidParameterValue")
             else:
                 self.cleaned_data['measurements'] = request_measurements
         else:
