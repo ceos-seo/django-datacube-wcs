@@ -121,6 +121,15 @@ class DescribeCoverage(View):
 
         coverages = models.CoverageOffering.objects.all()
         get_data = {key.lower(): val for key, val in request.GET.items()}
+
+        if 'version' not in get_data or get_data['version'] != "1.0.0":
+            response = render_to_response('ServiceException.xml', {
+                'exception_code': "MissingParameterValue",
+                'error_msg': "Version is a required parameter for DescribeCoverage requests"
+            })
+            response['Content-Type'] = 'application/vnd.ogc.se_xml'
+            return response
+
         if 'coverage' in get_data:
             coverages = models.CoverageOffering.objects.filter(name__in=get_data.get('coverage').split(","))
             if len(coverages) != len(get_data.get('coverage').split(",")):

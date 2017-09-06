@@ -211,11 +211,79 @@ class TestWCSSpecification(unittest.TestCase):
 
         # regarding 7.3.1 - not testable as per spec
 
-        params_72 = {'VERSION': "1.0.0", 'SERVICE': "WCS", 'REQUEST': "GetCapabilities"}
-        response = self.query_server(params_72)
+        params_73 = {'VERSION': "1.0.0", 'SERVICE': "WCS", 'REQUEST': "GetCapabilities"}
+        response = self.query_server(params_73)
         soup = BeautifulSoup(response.text, 'xml')
         for entry in soup.find_all('OnlineResource'):
-            self.assertTrue(entry.attrs['xlink:href'].endswith("?"))
+            self.assertTrue(entry.attrs['xlink:href'].endswith("?") and self.BASE_WCS_URL in entry.attrs['xlink:href'])
+
+    def test_describe_coverage_request(self):
+        """Test the DescribeCoverage request operation - Section 8.2
+
+        https://cite.opengeospatial.org/teamengine/about/wcs/1.0.0/site/testreq.html#8-DescribeCoverage%20Operation
+
+        """
+
+        params_82 = {'ReQuEsT': "DescribeCoverage", 'SeRvIcE': "WCS", "BOGUS": "SSS"}
+        response = self.query_server(params_82)
+        soup = BeautifulSoup(response.text, 'xml')
+        self.assertTrue(soup.find('ServiceExceptionReport'))
+
+        params_82 = {'ReQuEsT': "DescribeCoverage", 'SeRvIcE': "WCS", "BOGUS": "SSS", 'Version': "0.0.0.0"}
+        response = self.query_server(params_82)
+        soup = BeautifulSoup(response.text, 'xml')
+        self.assertTrue(soup.find('ServiceExceptionReport'))
+
+        # regarding 823 and 824 - these seem to say the same case, but different results. I'm going with the return all case.
+        params_82 = {'ReQuEsT': "DescribeCoverage", 'SeRvIcE': "WCS", 'Version': "1.0.0"}
+        response = self.query_server(params_82)
+        soup = BeautifulSoup(response.text, 'xml')
+        self.assertTrue(len(soup.find_all('CoverageOffering')) > 1)
+
+        params_82 = {
+            'ReQuEsT': "GetCapabilities",
+            'VeRsIoN': "1.0.0",
+            'SeRvIcE': "WCS",
+            "BOGUS": "SSS",
+            "SECTION": "/WCS_Capabilities/ContentMetadata"
+        }
+        response = self.query_server(params_82)
+        soup = BeautifulSoup(response.text, 'xml')
+        names = list(map(lambda n: n.text, soup.find_all('name')[0:2]))
+        params_82 = {
+            'ReQuEsT': "DescribeCoverage",
+            'SeRvIcE': "WCS",
+            "BOGUS": "SSS",
+            'Version': "1.0.0",
+            "COVERAGE": ",".join(names)
+        }
+        response = self.query_server(params_82)
+        soup = BeautifulSoup(response.text, 'xml')
+        self.assertTrue(len(soup.find_all('CoverageOffering')) == len(names))
+        for elem in soup.find_all('CoverageOffering'):
+            self.assertTrue(elem.find('name').text in names)
+
+        params_82 = {
+            'ReQuEsT': "DescribeCoverage",
+            'SeRvIcE': "WCS",
+            "BOGUS": "SSS",
+            'Version': "1.0.0",
+            "COVERAGE": "asdfasfasdf"
+        }
+        response = self.query_server(params_82)
+        soup = BeautifulSoup(response.text, 'xml')
+        self.assertTrue(soup.find('ServiceExceptionReport'))
+
+        params_82 = {
+            'ReQuEsT': "DescribeCoverage",
+            'SeRvIcE': "WCS",
+            "BOGUS": "SSS",
+            'Version': "1.0.0",
+            "COVERAGE": names[0] + ",asdfasdfasdf"
+        }
+        response = self.query_server(params_82)
+        soup = BeautifulSoup(response.text, 'xml')
+        self.assertTrue(soup.find('ServiceExceptionReport'))
 
     def query_server(self, query_dict=None):
 
