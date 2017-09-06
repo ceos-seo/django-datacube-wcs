@@ -90,7 +90,22 @@ def get_stacked_dataset(parameters, individual_dates, date_ranges):
 
 def get_tiff_response(coverage_offering, dataset, crs):
     """Uses rasterio MemoryFiles in order to return a streamable GeoTiff response"""
-    dtype = str(dataset[list(dataset.data_vars)[0]].dtype)
+
+    supported_dtype_map = {
+        'uint32': 4,
+        'complex': 9,
+        'float64': 7,
+        'complex128': 11,
+        'float32': 6,
+        'complex64': 10,
+        'int32': 5,
+        'uint16': 2,
+        'uint8': 1,
+        'int16': 3
+    }
+
+    dtype_list = [dataset[array].dtype for array in dataset.data_vars]
+    dtype = max(dtype_list, key=lambda d: supported_dtype_map[d])
     rangeset = apps.get_model("data_cube_wcs.CoverageRangesetEntry").objects.filter(coverage_offering=coverage_offering)
 
     dataset = dataset.astype(dtype)
@@ -102,7 +117,6 @@ def get_tiff_response(coverage_offering, dataset, crs):
                 count=len(dataset.data_vars),
                 transform=_get_transform_from_xr(dataset),
                 crs=crs,
-                nodata=-9999,
                 dtype=dtype) as dst:
             for idx, band in enumerate(dataset.data_vars, start=1):
                 dst.write(dataset[band].values, idx)
