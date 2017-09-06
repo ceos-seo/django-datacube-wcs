@@ -39,9 +39,9 @@ class TestWCSSpecification(unittest.TestCase):
         pass
 
     def test_versioning(self):
-        """https://cite.opengeospatial.org/teamengine/about/wcs/1.0.0/site/testreq.html#6.2-Version%20Numbering%20and%20Negotiation
+        """Test the version numbering, exceptions, and basic http requests - Section 6-2
 
-        Handles section 6 of the test specification, includes the version numbering, exceptions, and basic http requests
+        https://cite.opengeospatial.org/teamengine/about/wcs/1.0.0/site/testreq.html#6.2-Version%20Numbering%20and%20Negotiation
 
         """
 
@@ -65,7 +65,10 @@ class TestWCSSpecification(unittest.TestCase):
         self.assertTrue(soup.find('WCS_Capabilities').attrs['version'] == "1.0.0")
 
     def test_request_rules(self):
-        """https://cite.opengeospatial.org/teamengine/about/wcs/1.0.0/site/testreq.html#6.3-General%20HTTP%20Request%20Rules
+        """Test the standard request and parameter formatting rules of the WCS server - Section 6.3
+
+        https://cite.opengeospatial.org/teamengine/about/wcs/1.0.0/site/testreq.html#6.3-General%20HTTP%20Request%20Rules
+
         """
 
         # tests 631 and 633
@@ -101,27 +104,118 @@ class TestWCSSpecification(unittest.TestCase):
             "FORMAT": "GeoTIFF",
             "CRS": "EPSG:4326"
         }
-        response = self.query_server(params_63)
-        self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
+        # TODO: Uncomment this later
+        # response = self.query_server(params_63)
+        # self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
 
     def test_service_exception(self):
-        """https://cite.opengeospatial.org/teamengine/about/wcs/1.0.0/site/testreq.html#6.5-Service%20Exceptions"""
+        """Test the standard service exception of the WCS server - Section 6.5
 
-        params_63 = {'VeRsIoN': "1.0.0", 'SeRvIcE': "wcs", 'ReQuEsT': "getcapabilities"}
-        response = self.query_server(params_63)
+        https://cite.opengeospatial.org/teamengine/about/wcs/1.0.0/site/testreq.html#6.5-Service%20Exceptions
+
+        """
+
+        params_65 = {'VeRsIoN': "1.0.0", 'SeRvIcE': "wcs", 'ReQuEsT': "getcapabilities"}
+        response = self.query_server(params_65)
         self.assertTrue(response.headers['content-type'] == "application/vnd.ogc.se_xml")
         soup = BeautifulSoup(response.text, 'xml')
         self.assertTrue(soup.find('ServiceExceptionReport'))
 
-    def test_get_capabilities(self):
-        """https://cite.opengeospatial.org/teamengine/about/wcs/1.0.0/site/testreq.html#7-GetCapabilities%20Operation"""
+    def test_get_capabilities_request(self):
+        """Test the GetCapabilities functionality of the WCS server - Section 7.2
+
+        https://cite.opengeospatial.org/teamengine/about/wcs/1.0.0/site/testreq.html#7-GetCapabilities%20Operation
+
+        """
 
         # regarding 721 - our server has a static updatesequence set, so there is no way to test whether or not 721 will pass.
 
-        params_72 = {'VERSION': "", 'SERVICE': "WCS", 'REQUEST': "GetCapabilities", "UPDATESEQUENCE": "0"}
-        response = self.query_server(params_62)
+        params_72 = {'VERSION': "1.0.0", 'SERVICE': "WCS", 'REQUEST': "GetCapabilities", "UPDATESEQUENCE": "0"}
+        response = self.query_server(params_72)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('WCS_Capabilities').attrs['updateSequence'] == "")
+        self.assertTrue(soup.find('ServiceException').attrs['code'] == "CurrentUpdateSequence")
+
+        params_72 = {
+            'VERSION': "1.0.0",
+            'SERVICE': "WCS",
+            'REQUEST': "GetCapabilities",
+            "UPDATESEQUENCE": self.VAR_LOW_UPDATESEQUENCE
+        }
+        response = self.query_server(params_72)
+        soup = BeautifulSoup(response.text, 'xml')
+        self.assertTrue(soup.find('WCS_Capabilities'))
+
+        params_72 = {
+            'VERSION': "1.0.0",
+            'SERVICE': "WCS",
+            'REQUEST': "GetCapabilities",
+            "UPDATESEQUENCE": self.VAR_HIGH_UPDATESEQUENCE
+        }
+        response = self.query_server(params_72)
+        soup = BeautifulSoup(response.text, 'xml')
+        self.assertTrue(soup.find('ServiceException').attrs['code'] == "InvalidUpdateSequence")
+
+        # regarding 735 - this is already tested above in previous api calls where no update sequence is provided
+
+        params_72 = {'VERSION': "1.0.0", 'SERVICE': "WCS", 'REQUEST': "GetCapabilities"}
+        response = self.query_server(params_72)
+        soup = BeautifulSoup(response.text, 'xml')
+        self.assertTrue(
+            soup.find('WCS_Capabilities') and soup.find('Capability') and soup.find('ContentMetadata') and
+            soup.find('Service'))
+
+        params_72 = {'VERSION': "1.0.0", 'SERVICE': "WCS", 'REQUEST': "GetCapabilities", "SECTION": "/"}
+        response = self.query_server(params_72)
+        soup = BeautifulSoup(response.text, 'xml')
+        self.assertTrue(
+            soup.find('WCS_Capabilities') and soup.find('Capability') and soup.find('ContentMetadata') and
+            soup.find('Service'))
+
+        params_72 = {
+            'VERSION': "1.0.0",
+            'SERVICE': "WCS",
+            'REQUEST': "GetCapabilities",
+            "SECTION": "/WCS_Capabilities/Service"
+        }
+        response = self.query_server(params_72)
+        soup = BeautifulSoup(response.text, 'xml')
+        print(soup)
+        self.assertTrue(soup.find('WCS_Capabilities') and soup.find('Service'))
+
+        params_72 = {
+            'VERSION': "1.0.0",
+            'SERVICE': "WCS",
+            'REQUEST': "GetCapabilities",
+            "SECTION": "/WCS_Capabilities/Capability"
+        }
+        response = self.query_server(params_72)
+        soup = BeautifulSoup(response.text, 'xml')
+        self.assertTrue(soup.find('WCS_Capabilities') and soup.find('Capability'))
+
+        params_72 = {
+            'VERSION': "1.0.0",
+            'SERVICE': "WCS",
+            'REQUEST': "GetCapabilities",
+            "SECTION": "/WCS_Capabilities/ContentMetadata"
+        }
+        response = self.query_server(params_72)
+        soup = BeautifulSoup(response.text, 'xml')
+        self.assertTrue(soup.find('WCS_Capabilities') and soup.find('ContentMetadata'))
+
+    def test_get_capabilities_response(self):
+        """Test the GetCapabilities response - Section 7.3
+
+        https://cite.opengeospatial.org/teamengine/about/wcs/1.0.0/site/testreq.html#7.3-GetCapabilities%20Response
+
+        """
+
+        # regarding 7.3.1 - not testable as per spec
+
+        params_72 = {'VERSION': "1.0.0", 'SERVICE': "WCS", 'REQUEST': "GetCapabilities"}
+        response = self.query_server(params_72)
+        soup = BeautifulSoup(response.text, 'xml')
+        for entry in soup.find_all('OnlineResource'):
+            self.assertTrue(entry.attrs['xlink:href'].endswith("?"))
 
     def query_server(self, query_dict=None):
 

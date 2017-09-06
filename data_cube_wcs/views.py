@@ -65,17 +65,18 @@ class GetCapabilities(View):
         get_data = {key.lower(): val for key, val in request.GET.items()}
         get_capabilities_form = forms.GetCapabilitiesForm(get_data)
         if not get_capabilities_form.is_valid():
-            response = render_to_response('ServiceException.xml', {
-                'exception_code': get_capabilities_form.errors[error][0],
-                'error_msg': "Invalid section value."
-            })
-            response['Content-Type'] = 'application/vnd.ogc.se_xml'
-            return response
+            for error in get_capabilities_form.errors:
+                response = render_to_response('ServiceException.xml', {
+                    'exception_code': get_capabilities_form.errors[error][0],
+                    'error_msg': "Invalid section value."
+                })
+                response['Content-Type'] = 'application/vnd.ogc.se_xml'
+                return response
 
         section_map = {
-            "WCS_Capabilities/Service": "get_capabilities/service.xml",
-            "WCS_Capabilities/Capability": "get_capabilities/capability.xml",
-            "WCS_Capabilities/ContentMetadata": "get_capabilities/content_metadata.xml"
+            "/WCS_Capabilities/Service": "get_capabilities/service.xml",
+            "/WCS_Capabilities/Capability": "get_capabilities/capability.xml",
+            "/WCS_Capabilities/ContentMetadata": "get_capabilities/content_metadata.xml"
         }
 
         context = {

@@ -33,9 +33,10 @@ class GetCapabilitiesForm(BaseRequestForm):
 
     section = forms.ChoiceField(
         required=False,
-        choices=(("/", "/"), ("WCS_Capabilities/Service", "WCS_Capabilities/Service"),
-                 ("WCS_Capabilities/Capability", "WCS_Capabilities/Capability"),
-                 ("WCS_Capabilities/ContentMetadata", "WCS_Capabilities/ContentMetadata")))
+        choices=(("/", "/"), ("/WCS_Capabilities/Service", "/WCS_Capabilities/Service"),
+                 ("/WCS_Capabilities/Capability", "/WCS_Capabilities/Capability"),
+                 ("/WCS_Capabilities/ContentMetadata", "/WCS_Capabilities/ContentMetadata")),
+        error_messages={'invalid_choice': 'InvalidParameterValue'})
     updatesequence = forms.CharField(required=False)
 
     def clean(self):
