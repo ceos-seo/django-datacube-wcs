@@ -1,6 +1,8 @@
 import unittest
 import requests
 
+from bs4 import BeautifulSoup
+
 
 class TestWCSSpecification(unittest.TestCase):
     """Unittest framework meant to measure compliance with the OGC standard
@@ -28,14 +30,47 @@ class TestWCSSpecification(unittest.TestCase):
     VAR_WCS_COVERAGE_1_RESY = -0.00027
     VAR_WCS_COVERAGE_1_WIDTH = 100
     VAR_WCS_COVERAGE_1_HEIGHT = 100
-    VAR_WCS_DEFAULT_FORMAT = "GeoTIFF"
     VAR_WCS_FORMAT_1_HEADER = 'image/tiff'
-    VAR_WCS_CRS = "EPSG:4326"
 
     BASE_PARAMETERS = {'VERSION': "1.0.0", 'SERVICE': "WCS", 'REQUEST': "GetCapabilities"}
 
     def setUp(self):
-        pass
+        params = {
+            'ReQuEsT': "GetCapabilities",
+            'VeRsIoN': "1.0.0",
+            'SeRvIcE': "WCS",
+            "BOGUS": "SSS",
+            "SECTION": "/WCS_Capabilities/ContentMetadata"
+        }
+        response = self.query_server(params)
+        soup = BeautifulSoup(response.text, 'xml')
+        self.name = soup.find('name').text
+        self.names = list(map(lambda n: n.text, soup.find_all('name')[0:2]))
+
+        params = {'ReQuEsT': "DescribeCoverage", 'SeRvIcE': "WCS", 'Version': "1.0.0", "COVERAGE": self.name}
+        response = self.query_server(params)
+        soup = BeautifulSoup(response.text, 'xml')
+        position_container = soup.find('gml:Envelope').find_all('gml:pos') if soup.find('gml:Envelope') else soup.find(
+            'gml:EnvelopeWithTimePeriod').find_all('gml:pos')
+        # format of (x, y), (x, y)
+        bbox = list(map(lambda b: b.text.split(" "), position_container))
+        self.bbox = "{},{},{},{}".format(
+            min([bbox[0][0], bbox[1][0]]),
+            min([bbox[0][1], bbox[1][1]]), max([bbox[0][0], bbox[1][0]]), max([bbox[0][1], bbox[1][1]]))
+
+        self.request_response_crs = soup.find('requestResponseCRSs').text if soup.find('requestResponseCRSs') else None
+        self.request_crs = soup.find('requestCRSs').text if soup.find('requestCRSs') else self.request_response_crs
+        self.response_crs = soup.find('responseCRSs').text if soup.find('responseCRSs') else self.request_response_crs
+
+        self.request_format = soup.find('formats').text
+
+        if soup.find('CoverageOffering').find('timePosition'):
+            self.time_position = soup.find('CoverageOffering').find('timePosition')
+        elif soup.find('CoverageOffering').find('timePeriod'):
+            period = soup.find('CoverageOffering').find('timePeriod')
+            self.time_position = "{}/{}".format(period.find('beginPosition').text, period.find('endPosition').text)
+            if period.find('timeResolution'):
+                self.time_position += "/{}".format(period.find('timeResolution').text)
 
     def tearDown(self):
         pass

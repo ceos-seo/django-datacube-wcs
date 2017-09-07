@@ -13,21 +13,9 @@ class TestGetCoverage(TestWCSSpecification):
         https://cite.opengeospatial.org/teamengine/about/wcs/1.0.0/site/testreq.html#9-GetCoverage%20Operation
 
     Some of these test cases have 100% overlap and are omitted - Things like valid version/valid crs/valid {other field}
-    all just expect all valid params and a valid response, so this is left out. 
+    all just expect all valid params and a valid response, so this is left out.
 
     """
-
-    def setUp(self):
-        params = {
-            'ReQuEsT': "GetCapabilities",
-            'VeRsIoN': "1.0.0",
-            'SeRvIcE': "WCS",
-            "BOGUS": "SSS",
-            "SECTION": "/WCS_Capabilities/ContentMetadata"
-        }
-        response = self.query_server(params)
-        soup = BeautifulSoup(response.text, 'xml')
-        self.name = soup.find('name').text
 
     def test_missing_version(self):
         """
@@ -51,29 +39,18 @@ class TestGetCoverage(TestWCSSpecification):
         	Valid XML where /ServiceExceptionReport/ServiceException exists.
         """
 
-        params = {'ReQuEsT': "DescribeCoverage", 'SeRvIcE': "WCS", 'Version': "1.0.0", "COVERAGE": self.name}
-        response = self.query_server(params)
-        soup = BeautifulSoup(response.text, 'xml')
-        position_container = soup.find('gml:Envelope').find_all('gml:pos') if soup.find('gml:Envelope') else soup.find(
-            'gml:EnvelopeWithTimePeriod').find_all('gml:pos')
-        # format of (x, y), (x, y)
-        bbox = list(map(lambda b: b.text.split(" "), position_container))
-        bbox = "{},{},{},{}".format(
-            min([bbox[0][0], bbox[1][0]]),
-            min([bbox[0][1], bbox[1][1]]), max([bbox[0][0], bbox[1][0]]), max([bbox[0][1], bbox[1][1]]))
-        # uses the soup from a describe coverage call
         params = {
             'ReQuEsT': "GetCoverage",
             'SeRvIcE': "WCS",
             "HEIGHT": self.VAR_WCS_COVERAGE_1_HEIGHT,
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "COVERAGE": self.name,
-            "FORMAT": self.VAR_WCS_DEFAULT_FORMAT,
-            "CRS": self.VAR_WCS_CRS,
-            "BBOX": bbox
+            "FORMAT": self.request_format,
+            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "BBOX": self.bbox
         }
-        if soup.find('CoverageOffering').find('timePosition'):
-            params['TIME'] = soup.find('CoverageOffering').find('timePosition').text
+        if self.time_position:
+            params['TIME'] = self.time_position
         response = self.query_server(params)
         soup = BeautifulSoup(response.text, 'xml')
         self.assertTrue(soup.find('ServiceException'))
@@ -102,17 +79,6 @@ class TestGetCoverage(TestWCSSpecification):
 
         """
 
-        params = {'ReQuEsT': "DescribeCoverage", 'SeRvIcE': "WCS", 'Version': "1.0.0", "COVERAGE": self.name}
-        response = self.query_server(params)
-        soup = BeautifulSoup(response.text, 'xml')
-        position_container = soup.find('gml:Envelope').find_all('gml:pos') if soup.find('gml:Envelope') else soup.find(
-            'gml:EnvelopeWithTimePeriod').find_all('gml:pos')
-        # format of (x, y), (x, y)
-        bbox = list(map(lambda b: b.text.split(" "), position_container))
-        bbox = "{},{},{},{}".format(
-            min([bbox[0][0], bbox[1][0]]),
-            min([bbox[0][1], bbox[1][1]]), max([bbox[0][0], bbox[1][0]]), max([bbox[0][1], bbox[1][1]]))
-        # uses the soup from a describe coverage call
         params = {
             'ReQuEsT': "GetCoverage",
             'SeRvIcE': "WCS",
@@ -120,12 +86,12 @@ class TestGetCoverage(TestWCSSpecification):
             "HEIGHT": self.VAR_WCS_COVERAGE_1_HEIGHT,
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "COVERAGE": self.name,
-            "FORMAT": self.VAR_WCS_DEFAULT_FORMAT,
-            "CRS": self.VAR_WCS_CRS,
-            "BBOX": bbox
+            "FORMAT": self.request_format,
+            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "BBOX": self.bbox
         }
-        if soup.find('CoverageOffering').find('timePosition'):
-            params['TIME'] = soup.find('CoverageOffering').find('timePosition').text
+        if self.time_position:
+            params['TIME'] = self.time_position
         response = self.query_server(params)
         soup = BeautifulSoup(response.text, 'xml')
         self.assertTrue(soup.find('ServiceException'))
@@ -153,29 +119,18 @@ class TestGetCoverage(TestWCSSpecification):
 
         """
 
-        params = {'ReQuEsT': "DescribeCoverage", 'SeRvIcE': "WCS", 'Version': "1.0.0", "COVERAGE": self.name}
-        response = self.query_server(params)
-        soup = BeautifulSoup(response.text, 'xml')
-        position_container = soup.find('gml:Envelope').find_all('gml:pos') if soup.find('gml:Envelope') else soup.find(
-            'gml:EnvelopeWithTimePeriod').find_all('gml:pos')
-        # format of (x, y), (x, y)
-        bbox = list(map(lambda b: b.text.split(" "), position_container))
-        bbox = "{},{},{},{}".format(
-            min([bbox[0][0], bbox[1][0]]),
-            min([bbox[0][1], bbox[1][1]]), max([bbox[0][0], bbox[1][0]]), max([bbox[0][1], bbox[1][1]]))
-        # uses the soup from a describe coverage call
         params = {
             'ReQuEsT': "GetCoverage",
             'SeRvIcE': "WCS",
             'version': "1.0.0",
             "HEIGHT": self.VAR_WCS_COVERAGE_1_HEIGHT,
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
-            "FORMAT": self.VAR_WCS_DEFAULT_FORMAT,
-            "CRS": self.VAR_WCS_CRS,
-            "BBOX": bbox
+            "FORMAT": self.request_format,
+            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "BBOX": self.bbox
         }
-        if soup.find('CoverageOffering').find('timePosition'):
-            params['TIME'] = soup.find('CoverageOffering').find('timePosition').text
+        if self.time_position:
+            params['TIME'] = self.time_position
         response = self.query_server(params)
         soup = BeautifulSoup(response.text, 'xml')
         self.assertTrue(soup.find('ServiceException'))
@@ -186,17 +141,6 @@ class TestGetCoverage(TestWCSSpecification):
         return a content (if other condition satisfied).
         """
 
-        params = {'ReQuEsT': "DescribeCoverage", 'SeRvIcE': "WCS", 'Version': "1.0.0", "COVERAGE": self.name}
-        response = self.query_server(params)
-        soup = BeautifulSoup(response.text, 'xml')
-        position_container = soup.find('gml:Envelope').find_all('gml:pos') if soup.find('gml:Envelope') else soup.find(
-            'gml:EnvelopeWithTimePeriod').find_all('gml:pos')
-        # format of (x, y), (x, y)
-        bbox = list(map(lambda b: b.text.split(" "), position_container))
-        bbox = "{},{},{},{}".format(
-            min([bbox[0][0], bbox[1][0]]),
-            min([bbox[0][1], bbox[1][1]]), max([bbox[0][0], bbox[1][0]]), max([bbox[0][1], bbox[1][1]]))
-        # uses the soup from a describe coverage call
         params = {
             'ReQuEsT': "GetCoverage",
             'SeRvIcE': "WCS",
@@ -204,12 +148,12 @@ class TestGetCoverage(TestWCSSpecification):
             "HEIGHT": self.VAR_WCS_COVERAGE_1_HEIGHT,
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "COVERAGE": self.name,
-            "FORMAT": self.VAR_WCS_DEFAULT_FORMAT,
-            "CRS": self.VAR_WCS_CRS,
-            "BBOX": bbox
+            "FORMAT": self.request_format,
+            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "BBOX": self.bbox
         }
-        if soup.find('CoverageOffering').find('timePosition'):
-            params['TIME'] = soup.find('CoverageOffering').find('timePosition').text
+        if self.time_position:
+            params['TIME'] = self.time_position
         # TODO: uncomment
         # response = self.query_server(params)
         # self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
@@ -239,17 +183,6 @@ class TestGetCoverage(TestWCSSpecification):
 
         """
 
-        params = {'ReQuEsT': "DescribeCoverage", 'SeRvIcE': "WCS", 'Version': "1.0.0", "COVERAGE": self.name}
-        response = self.query_server(params)
-        soup = BeautifulSoup(response.text, 'xml')
-        position_container = soup.find('gml:Envelope').find_all('gml:pos') if soup.find('gml:Envelope') else soup.find(
-            'gml:EnvelopeWithTimePeriod').find_all('gml:pos')
-        # format of (x, y), (x, y)
-        bbox = list(map(lambda b: b.text.split(" "), position_container))
-        bbox = "{},{},{},{}".format(
-            min([bbox[0][0], bbox[1][0]]),
-            min([bbox[0][1], bbox[1][1]]), max([bbox[0][0], bbox[1][0]]), max([bbox[0][1], bbox[1][1]]))
-        # uses the soup from a describe coverage call
         params = {
             'ReQuEsT': "GetCoverage",
             'SeRvIcE': "WCS",
@@ -257,12 +190,12 @@ class TestGetCoverage(TestWCSSpecification):
             'coverage': "asfasfasdfasf",
             "HEIGHT": self.VAR_WCS_COVERAGE_1_HEIGHT,
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
-            "FORMAT": self.VAR_WCS_DEFAULT_FORMAT,
-            "CRS": self.VAR_WCS_CRS,
-            "BBOX": bbox
+            "FORMAT": self.request_format,
+            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "BBOX": self.bbox
         }
-        if soup.find('CoverageOffering').find('timePosition'):
-            params['TIME'] = soup.find('CoverageOffering').find('timePosition').text
+        if self.time_position:
+            params['TIME'] = self.time_position
         response = self.query_server(params)
         soup = BeautifulSoup(response.text, 'xml')
         self.assertTrue(soup.find('ServiceException'))
@@ -290,17 +223,6 @@ class TestGetCoverage(TestWCSSpecification):
 
         """
 
-        params = {'ReQuEsT': "DescribeCoverage", 'SeRvIcE': "WCS", 'Version': "1.0.0", "COVERAGE": self.name}
-        response = self.query_server(params)
-        soup = BeautifulSoup(response.text, 'xml')
-        position_container = soup.find('gml:Envelope').find_all('gml:pos') if soup.find('gml:Envelope') else soup.find(
-            'gml:EnvelopeWithTimePeriod').find_all('gml:pos')
-        # format of (x, y), (x, y)
-        bbox = list(map(lambda b: b.text.split(" "), position_container))
-        bbox = "{},{},{},{}".format(
-            min([bbox[0][0], bbox[1][0]]),
-            min([bbox[0][1], bbox[1][1]]), max([bbox[0][0], bbox[1][0]]), max([bbox[0][1], bbox[1][1]]))
-        # uses the soup from a describe coverage call
         params = {
             'ReQuEsT': "GetCoverage",
             'SeRvIcE': "WCS",
@@ -308,13 +230,140 @@ class TestGetCoverage(TestWCSSpecification):
             "HEIGHT": self.VAR_WCS_COVERAGE_1_HEIGHT,
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "COVERAGE": self.name,
-            "FORMAT": self.VAR_WCS_DEFAULT_FORMAT,
-            "BBOX": bbox
+            "FORMAT": self.request_format,
+            "BBOX": self.bbox
         }
-        if soup.find('CoverageOffering').find('timePosition'):
-            params['TIME'] = soup.find('CoverageOffering').find('timePosition').text
+        if self.time_position:
+            params['TIME'] = self.time_position
+        response = self.query_server(params)
+        soup = BeautifulSoup(response.text, 'xml')
+        self.assertTrue(soup.find('ServiceException'))
+
+    def test_unsupported_crs(self):
+        """
+        When a GetCoverage request is made with a CRS and CRS value is not one of the requestResponseCRSs or requestCRSs
+        element under the requested coverage, the server returns service exception.
+
+        Request#1:
+            SERVICE = WCS
+            VERSION = [[VAR_WCS_VERSION]]
+            REQUEST = DescribeCoverage
+            COVERAGE = [[VAR_WCS_COVERAGE_1]]
+        Request#2:
+            VERSION = [[VAR_WCS_VERSION]]
+            SERVICE = WCS
+            REQUEST = GetCoverage
+            COVERAGE = [[VAR_WCS_COVERAGE_1]]
+            CRS = WCS_CRS_NOT_IN_REQUEST_OR_REQUESTRESPONSE_CRS
+            BBOX = [[VAR_WCS_BBOX_1]]
+            WIDTH = [[VAR_WCS_COVERAGE_1_WIDTH]]
+            HEIGHT = [[VAR_WCS_COVERAGE_1_HEIGHT]]
+            FORMAT = [[VAR_WCS_FORMAT_1]]
+        Results:
+            Valid XML where /ServiceExceptionReport/ServiceException exists.
+
+        """
+
+        params = {
+            'ReQuEsT': "GetCoverage",
+            'SeRvIcE': "WCS",
+            'version': "1.0.0",
+            "HEIGHT": self.VAR_WCS_COVERAGE_1_HEIGHT,
+            "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
+            "COVERAGE": self.name,
+            "FORMAT": self.request_format,
+            "BBOX": self.bbox,
+            #obviously invalid
+            "CRS": "EPSG:456413215"
+        }
+        if self.time_position:
+            params['TIME'] = self.time_position
+        response = self.query_server(params)
+        soup = BeautifulSoup(response.text, 'xml')
+        self.assertTrue(soup.find('ServiceException'))
+
+    def test_valid_response_crs(self):
+        """
+        When a GetCoverage request is made with a valid RESPONSE_CRS, the server should return the requested content with this CRS.
+
+        Request#1:
+            SERVICE = WCS
+            VERSION = [[VAR_WCS_VERSION]]
+            REQUEST = DescribeCoverage
+            COVERAGE = [[VAR_WCS_COVERAGE_1]]
+        Request#2:
+            VERSION = 1.0.0
+            SERVICE = WCS
+            REQUEST = GetCoverage
+            COVERAGE = [[VAR_WCS_COVERAGE_1]]
+            CRS = [[VAR_WCS_COVERAGE_1_CRS]]
+            RESPONSE_CRS = [[VAR_WCS_COVERAGE_1_RESPONSE_CRS]]
+            BBOX = [[VAR_WCS_COVERAGE_1_BBOX]]
+            WIDTH = [[VAR_WCS_COVERAGE_1_WIDTH]]
+            HEIGHT = [[VAR_WCS_COVERAGE_1_HEIGHT]]
+            FORMAT = [[VAR_WCS_FORMAT_1]]
+        Results:
+        	Content-type header = [[VAR_WCS_FORMAT_1_HEADER]]
+
+        """
+
+        params = {
+            'ReQuEsT': "GetCoverage",
+            'SeRvIcE': "WCS",
+            'version': "1.0.0",
+            "HEIGHT": self.VAR_WCS_COVERAGE_1_HEIGHT,
+            "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
+            "COVERAGE": self.name,
+            "FORMAT": self.request_format,
+            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "RESPONSE_CRS": self.response_crs if self.response_crs else self.request_response_crs,
+            "BBOX": self.bbox
+        }
+        if self.time_position:
+            params['TIME'] = self.time_position
         # TODO: uncomment
         # response = self.query_server(params)
         # self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
+
+    def test_invalid_response_crs(self):
+        """
+        When a GetCoverage request is made with an invalid RESPONSE_CRS, the server returns service exception.
+
+        Request#1:
+            SERVICE = WCS
+            VERSION = [[VAR_WCS_VERSION]]
+            REQUEST = DescribeCoverage
+            COVERAGE = [[VAR_WCS_COVERAGE_1]]
+        Request#2:
+            VERSION = 1.0.0
+            SERVICE = WCS
+            REQUEST = GetCoverage
+            COVERAGE = [[VAR_WCS_COVERAGE_1]]
+            CRS = [[VAR_WCS_COVERAGE_1_CRS]]
+            RESPONSE_CRS = WCS_COVERAGE_RESPONSE_CRS_INVALID
+            BBOX = [[VAR_WCS_COVERAGE_1_BBOX]]
+            WIDTH = [[VAR_WCS_COVERAGE_1_WIDTH]]
+            HEIGHT = [[VAR_WCS_COVERAGE_1_HEIGHT]]
+            FORMAT = [[VAR_WCS_FORMAT_1]]
+        Results:
+        	Valid XML where /ServiceExceptionReport/ServiceException exists. 
+
+        """
+
+        params = {
+            'ReQuEsT': "GetCoverage",
+            'SeRvIcE': "WCS",
+            'version': "1.0.0",
+            "HEIGHT": self.VAR_WCS_COVERAGE_1_HEIGHT,
+            "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
+            "COVERAGE": self.name,
+            "FORMAT": self.request_format,
+            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "RESPONSE_CRS": "EPSG:5464321385",
+            "BBOX": self.bbox
+        }
+        if self.time_position:
+            params['TIME'] = self.time_position
+        response = self.query_server(params)
         soup = BeautifulSoup(response.text, 'xml')
         self.assertTrue(soup.find('ServiceException'))

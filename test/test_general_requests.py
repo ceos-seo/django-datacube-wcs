@@ -222,9 +222,9 @@ class TestGeneralRequests(TestWCSSpecification):
             "HEIGHT": 10,
             "WIDTH": 10,
             "COVERAGE": soup.find('CoverageOffering').find('name').text,
-            "TIME": soup.find('CoverageOffering').find('timePosition').text,
-            "FORMAT": self.VAR_WCS_DEFAULT_FORMAT,
-            "CRS": "EPSG:4326"
+            "TIME": self.time_position,
+            "FORMAT": self.request_format,
+            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs
         }
         # TODO: Uncomment this later
         # response = self.query_server(params_63)
