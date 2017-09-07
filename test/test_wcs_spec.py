@@ -30,6 +30,7 @@ class TestWCSSpecification(unittest.TestCase):
     VAR_WCS_COVERAGE_1_HEIGHT = 100
     VAR_WCS_DEFAULT_FORMAT = "GeoTIFF"
     VAR_WCS_FORMAT_1_HEADER = 'image/tiff'
+    VAR_WCS_CRS = "EPSG:4326"
 
     BASE_PARAMETERS = {'VERSION': "1.0.0", 'SERVICE': "WCS", 'REQUEST': "GetCapabilities"}
 

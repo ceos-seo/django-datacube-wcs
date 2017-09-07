@@ -96,7 +96,7 @@ class TestDescribeCoverage(TestWCSSpecification):
             'SeRvIcE': "WCS",
             "BOGUS": "SSS",
             'Version': "1.0.0",
-            "COVERAGE": ",".join(names)
+            "COVERAGE": ",".join(self.names)
         }
         response = self.query_server(params_82)
         soup = BeautifulSoup(response.text, 'xml')
