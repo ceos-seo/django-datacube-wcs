@@ -52,7 +52,7 @@
       <nativeCRSs>{{ crs }}</nativeCRSs>
     {% endfor %}
   </supportedCRSs>
-  <supportedFormats nativeFormat="raw binary">
+  <supportedFormats nativeFormat="GeoTIFF">
     {% for format in valid_formats %}
       <formats>{{ format }}</formats>
     {% endfor %}

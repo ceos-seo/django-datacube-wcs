@@ -30,6 +30,7 @@ class TestWCSSpecification(unittest.TestCase):
     VAR_WCS_COVERAGE_1_RESY = -0.00027
     VAR_WCS_COVERAGE_1_WIDTH = 100
     VAR_WCS_COVERAGE_1_HEIGHT = 100
+    VAR_WCS_COVERAGE_1_FORMAT = "GeoTIFF"
     VAR_WCS_FORMAT_1_HEADER = 'image/tiff'
 
     BASE_PARAMETERS = {'VERSION': "1.0.0", 'SERVICE': "WCS", 'REQUEST': "GetCapabilities"}
@@ -53,16 +54,21 @@ class TestWCSSpecification(unittest.TestCase):
         position_container = soup.find('gml:Envelope').find_all('gml:pos') if soup.find('gml:Envelope') else soup.find(
             'gml:EnvelopeWithTimePeriod').find_all('gml:pos')
         # format of (x, y), (x, y)
-        bbox = list(map(lambda b: b.text.split(" "), position_container))
+        bbox = list(map(lambda x: [float(x[0]), float(x[1])], map(lambda b: b.text.split(" "), position_container)))
         self.bbox = "{},{},{},{}".format(
             min([bbox[0][0], bbox[1][0]]),
             min([bbox[0][1], bbox[1][1]]), max([bbox[0][0], bbox[1][0]]), max([bbox[0][1], bbox[1][1]]))
+
+        subset_bbox = list(map(lambda x: float(x), self.bbox.split(",")))
+        subset_bbox[2] = subset_bbox[0] + ((subset_bbox[2] - subset_bbox[0]) / 10)
+        subset_bbox[3] = subset_bbox[1] + ((subset_bbox[3] - subset_bbox[1]) / 10)
+        self.subset_bbox = "{},{},{},{}".format(subset_bbox[0], subset_bbox[1], subset_bbox[2], subset_bbox[3])
 
         self.request_response_crs = soup.find('requestResponseCRSs').text if soup.find('requestResponseCRSs') else None
         self.request_crs = soup.find('requestCRSs').text if soup.find('requestCRSs') else self.request_response_crs
         self.response_crs = soup.find('responseCRSs').text if soup.find('responseCRSs') else self.request_response_crs
 
-        self.request_format = soup.find('formats').text
+        self.request_format = self.VAR_WCS_COVERAGE_1_FORMAT
         coverage_offering = soup.find('CoverageOffering')
         if coverage_offering.find('timePosition'):
             self.time_position = coverage_offering.find('timePosition')

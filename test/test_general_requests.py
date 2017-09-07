@@ -226,9 +226,9 @@ class TestGeneralRequests(TestWCSSpecification):
             "FORMAT": self.request_format,
             "CRS": self.request_response_crs if self.request_response_crs else self.request_crs
         }
-        # TODO: Uncomment this later
-        # response = self.query_server(params_63)
-        # self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
+
+        response = self.query_server(params_63)
+        self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
 
     def test_service_exception(self):
         """

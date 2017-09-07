@@ -1,6 +1,7 @@
 from django import forms
 
 from dateutil import parser
+from collections import OrderedDict
 
 from . import models
 from . import utils
@@ -13,7 +14,7 @@ exception_codes = [
 AVAILABLE_INPUT_CRS = ["EPSG:4326"]
 AVAILABLE_OUTPUT_CRS = ["EPSG:4326"]
 NATIVE_CRS = ["EPSG:4326"]
-AVAILABLE_FORMATS = {'GeoTIFF': 'image/tiff', 'netCDF': 'application/x-netcdf'}
+AVAILABLE_FORMATS = OrderedDict({'GeoTIFF': 'image/tiff', 'netCDF': 'application/x-netcdf'})
 INTERPOLATION_OPTIONS = {'nearest neighbor': 'nearest', 'bilinear': 'bilinear', 'bicubic': 'cubic'}
 
 
@@ -71,7 +72,10 @@ class GetCoverageForm(BaseRequestForm):
     resy = forms.FloatField(required=False)
 
     interpolation = forms.ChoiceField(
-        required=False, choices=((option, option) for option in INTERPOLATION_OPTIONS), initial="nearest neighbor")
+        required=False,
+        choices=((option, option) for option in INTERPOLATION_OPTIONS),
+        initial="nearest neighbor",
+        error_messages={"invalid_choice": "InvalidParameterValue"})
     format = forms.ChoiceField(
         choices=((option, option) for option in AVAILABLE_FORMATS),
         initial="GeoTIFF",
@@ -82,13 +86,13 @@ class GetCoverageForm(BaseRequestForm):
     #measurements are the only parameters available as an AxisDescription/rangeset
     measurements = forms.CharField(required=False)
 
-    def clean_RESPONSE_CRS(self):
+    def clean_response_crs(self):
         """Meant to provide actual default values for various form fields if missing from GET"""
         if not self['response_crs'].html_name in self.data:
             return self.fields['response_crs'].initial
         return self.cleaned_data['response_crs']
 
-    def clean_INTERPOLATION(self):
+    def clean_interpolation(self):
         """Meant to provide actual default values for various form fields if missing from GET"""
         if not self['interpolation'].html_name in self.data:
             return self.fields['interpolation'].initial
@@ -119,8 +123,15 @@ class GetCoverageForm(BaseRequestForm):
         if cleaned_data.get('bbox', None):
             split_bbox = self.cleaned_data['bbox'].split(",")
 
-            latitude_range = (float(split_bbox[1]), float(split_bbox[3]))
-            longitude_range = (float(split_bbox[0]), float(split_bbox[2]))
+            if len(split_bbox) not in [4, 6]:
+                self.add_error('bbox', "InvalidParameterValue")
+                return
+
+            try:
+                latitude_range = (float(split_bbox[1]), float(split_bbox[3]))
+                longitude_range = (float(split_bbox[0]), float(split_bbox[2]))
+            except:
+                self.add_error('bbox', "InvalidParameterValue")
 
             validation_cases = [
                 not utils._ranges_intersect(latitude_range,
@@ -149,10 +160,18 @@ class GetCoverageForm(BaseRequestForm):
             if _time_type_range:
                 time_range = self.cleaned_data['time'].split(",")
                 time_ranges = map(lambda r: r.split("/"), time_range)
-                time_ranges = list(map(lambda r: (parser.parse(r[0]), parser.parse(r[1])), time_ranges))
+                try:
+                    time_ranges = list(map(lambda r: (parser.parse(r[0]), parser.parse(r[1])), time_ranges))
+                except ValueError:
+                    self.add_error("time", "InvalidParameterValue")
+                    return
             else:
                 date_list = self.cleaned_data['time'].split(",")
-                times = list(map(lambda t: parser.parse(t), date_list))
+                try:
+                    times = list(map(lambda t: parser.parse(t), date_list))
+                except ValueError:
+                    self.add_error("time", "InvalidParameterValue")
+                    return
                 valid_times = coverage_offering.get_temporal_domain()
                 if len(list(set(valid_times) & set(date_list))) != len(date_list):
                     self.add_error("time", "InvalidParameterValue")
@@ -195,4 +214,5 @@ class GetCoverageForm(BaseRequestForm):
         else:
             self.cleaned_data['measurements'] = coverage_offering.get_measurements()
 
-        self.cleaned_data['resampling'] = INTERPOLATION_OPTIONS.get(self.cleaned_data['interpolation'], 'nearest')
+        if 'interpolation' in self.cleaned_data:
+            self.cleaned_data['resampling'] = INTERPOLATION_OPTIONS.get(self.cleaned_data['interpolation'], 'nearest')

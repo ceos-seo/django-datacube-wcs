@@ -52,7 +52,7 @@ class TestGetCoverage(TestWCSSpecification):
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
             "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
-            "BBOX": self.bbox
+            "BBOX": self.subset_bbox
         }
         if self.time_position:
             params['TIME'] = self.time_position
@@ -93,7 +93,7 @@ class TestGetCoverage(TestWCSSpecification):
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
             "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
-            "BBOX": self.bbox
+            "BBOX": self.subset_bbox
         }
         if self.time_position:
             params['TIME'] = self.time_position
@@ -132,7 +132,7 @@ class TestGetCoverage(TestWCSSpecification):
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "FORMAT": self.request_format,
             "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
-            "BBOX": self.bbox
+            "BBOX": self.subset_bbox
         }
         if self.time_position:
             params['TIME'] = self.time_position
@@ -155,13 +155,13 @@ class TestGetCoverage(TestWCSSpecification):
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
             "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
-            "BBOX": self.bbox
+            "BBOX": self.subset_bbox
         }
         if self.time_position:
             params['TIME'] = self.time_position
-        # TODO: uncomment
-        # response = self.query_server(params)
-        # self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
+
+        response = self.query_server(params)
+        self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
 
     def test_invalid_coverage(self):
         """
@@ -197,7 +197,7 @@ class TestGetCoverage(TestWCSSpecification):
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "FORMAT": self.request_format,
             "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
-            "BBOX": self.bbox
+            "BBOX": self.subset_bbox
         }
         if self.time_position:
             params['TIME'] = self.time_position
@@ -236,7 +236,7 @@ class TestGetCoverage(TestWCSSpecification):
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
-            "BBOX": self.bbox
+            "BBOX": self.subset_bbox
         }
         if self.time_position:
             params['TIME'] = self.time_position
@@ -277,7 +277,7 @@ class TestGetCoverage(TestWCSSpecification):
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
-            "BBOX": self.bbox,
+            "BBOX": self.subset_bbox,
             #obviously invalid
             "CRS": "EPSG:456413215"
         }
@@ -322,13 +322,13 @@ class TestGetCoverage(TestWCSSpecification):
             "FORMAT": self.request_format,
             "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
             "RESPONSE_CRS": self.response_crs if self.response_crs else self.request_response_crs,
-            "BBOX": self.bbox
+            "BBOX": self.subset_bbox
         }
         if self.time_position:
             params['TIME'] = self.time_position
-        # TODO: uncomment
-        # response = self.query_server(params)
-        # self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
+
+        response = self.query_server(params)
+        self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
 
     def test_invalid_response_crs(self):
         """
@@ -365,7 +365,7 @@ class TestGetCoverage(TestWCSSpecification):
             "FORMAT": self.request_format,
             "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
             "RESPONSE_CRS": "EPSG:5464321385",
-            "BBOX": self.bbox
+            "BBOX": self.subset_bbox
         }
         if self.time_position:
             params['TIME'] = self.time_position
@@ -380,11 +380,6 @@ class TestGetCoverage(TestWCSSpecification):
 
         """
 
-        subset_bbox = list(map(lambda x: float(x), self.bbox.split(",")))
-        subset_bbox[0] += (subset_bbox[2] - subset_bbox[0]) / 2
-        subset_bbox[1] += (subset_bbox[3] - subset_bbox[1]) / 2
-        subset_bbox = "{},{},{},{}".format(subset_bbox[0], subset_bbox[1], subset_bbox[2], subset_bbox[3])
-
         params = {
             'ReQuEsT': "GetCoverage",
             'SeRvIcE': "WCS",
@@ -394,14 +389,13 @@ class TestGetCoverage(TestWCSSpecification):
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
             "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
-            "BBOX": subset_bbox
+            "BBOX": self.subset_bbox
         }
         if self.time_position:
             params['TIME'] = self.time_position
-        # TODO: uncomment
-        # TODO: Verify that this is a subset?
-        # response = self.query_server(params)
-        # self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
+
+        response = self.query_server(params)
+        self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
 
     def test_invalid_bbox(self):
         """
@@ -520,14 +514,13 @@ class TestGetCoverage(TestWCSSpecification):
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
             "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
-            "BBOX": self.bbox
+            "BBOX": self.subset_bbox
         }
         # this test is only applicable if the server advertises a time position
         if self.time_position:
             params['TIME'] = self.time_position
-            # TODO: uncomment
-            # response = self.query_server(params)
-            # self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
+            response = self.query_server(params)
+            self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
 
     def test_invalid_time(self):
         """
@@ -562,7 +555,7 @@ class TestGetCoverage(TestWCSSpecification):
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
             "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
-            "BBOX": self.bbox
+            "BBOX": self.subset_bbox
         }
         # this test is only applicable if the server advertises a time position
         if self.time_position:
@@ -607,7 +600,7 @@ class TestGetCoverage(TestWCSSpecification):
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
             "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
-            "BBOX": self.bbox
+            "BBOX": self.subset_bbox
         }
         # this test is only applicable if the server advertises a time position
         if self.time_position:
@@ -654,7 +647,7 @@ class TestGetCoverage(TestWCSSpecification):
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
             "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
-            "BBOX": self.bbox
+            "BBOX": self.subset_bbox
         }
         # this test is only applicable if the server advertises a time position
         if self.time_position:
@@ -662,9 +655,8 @@ class TestGetCoverage(TestWCSSpecification):
             params['TIME'] = self.time_position
         if self.parameter:
             params[self.parameter] = self.parameter_value
-            # TODO: uncomment
-            # response = self.query_server(params)
-            # self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
+            response = self.query_server(params)
+            self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
 
     def test_missing_grid_size(self):
         """
@@ -695,7 +687,7 @@ class TestGetCoverage(TestWCSSpecification):
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
             "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
-            "BBOX": self.bbox
+            "BBOX": self.subset_bbox
         }
         # this test is only applicable if the server advertises a time position
         if self.time_position:
@@ -738,16 +730,15 @@ class TestGetCoverage(TestWCSSpecification):
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
             "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
-            "BBOX": self.bbox
+            "BBOX": self.subset_bbox
         }
         # this test is only applicable if the server advertises a time position
         if self.time_position:
             # clearly not a valid time
             params['TIME'] = self.time_position
 
-        # TODO: uncomment
-        # response = self.query_server(params)
-        # self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
+        response = self.query_server(params)
+        self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
 
     def test_invalid_format(self):
         """
@@ -783,7 +774,7 @@ class TestGetCoverage(TestWCSSpecification):
             "COVERAGE": self.name,
             "FORMAT": "asdfasdfasdf",
             "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
-            "BBOX": self.bbox
+            "BBOX": self.subset_bbox
         }
         # this test is only applicable if the server advertises a time position
         if self.time_position:
@@ -824,7 +815,7 @@ class TestGetCoverage(TestWCSSpecification):
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "COVERAGE": self.name,
             "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
-            "BBOX": self.bbox
+            "BBOX": self.subset_bbox
         }
         # this test is only applicable if the server advertises a time position
         if self.time_position:
@@ -854,17 +845,16 @@ class TestGetCoverage(TestWCSSpecification):
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
             "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
-            "BBOX": self.bbox,
-            'INTERPLATION': self.interpolations[0]
+            "BBOX": self.subset_bbox,
+            'INTERPOLATION': self.interpolations[0]
         }
         # this test is only applicable if the server advertises a time position
         if self.time_position:
             # clearly not a valid time
             params['TIME'] = self.time_position
 
-        # TODO: uncomment
-        # response = self.query_server(params)
-        # self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
+        response = self.query_server(params)
+        self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
 
     def test_invalid_interpolation(self):
         """
@@ -884,8 +874,8 @@ class TestGetCoverage(TestWCSSpecification):
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
             "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
-            "BBOX": self.bbox,
-            'INTERPLATION': "asdfasdfasdf"
+            "BBOX": self.subset_bbox,
+            'INTERPOLATION': "asdfasdfasdf"
         }
         # this test is only applicable if the server advertises a time position
         if self.time_position:
