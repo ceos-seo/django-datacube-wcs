@@ -285,6 +285,34 @@ class TestWCSSpecification(unittest.TestCase):
         soup = BeautifulSoup(response.text, 'xml')
         self.assertTrue(soup.find('ServiceExceptionReport'))
 
+        # seperate here
+        params_82 = {
+            'ReQuEsT': "GetCapabilities",
+            'VeRsIoN': "1.0.0",
+            'SeRvIcE': "WCS",
+            "BOGUS": "SSS",
+            "SECTION": "/WCS_Capabilities/ContentMetadata"
+        }
+        response = self.query_server(params_82)
+        soup = BeautifulSoup(response.text, 'xml')
+        names = list(map(lambda n: n.text, soup.find_all('name')[0:2]))
+        params_82 = {
+            'ReQuEsT': "DescribeCoverage",
+            'SeRvIcE': "WCS",
+            "BOGUS": "SSS",
+            'Version': "1.0.0",
+            "COVERAGE": names[0]
+        }
+        response = self.query_server(params_82)
+        soup = BeautifulSoup(response.text, 'xml')
+        formats = list(map(lambda f: f.text, soup.find_all('formats')))
+        self.assertTrue(len(set(["GeoTIFF", "HDF-EOS", "DTED", "NITF", "GML"]).intersection(formats)) > 0)
+        interpolations = list(map(lambda f: f.text, soup.find_all('interpolationMethod')))
+        self.assertTrue(
+            len(
+                set(["nearest neighbor", "bilinear", "bicubic", "lost area", "barycentric"]).intersection(
+                    interpolations)) > 0)
+
     def query_server(self, query_dict=None):
 
         return requests.get(self.BASE_WCS_URL, params=(query_dict if query_dict else self.BASE_PARAMETERS))
