@@ -63,14 +63,23 @@ class TestWCSSpecification(unittest.TestCase):
         self.response_crs = soup.find('responseCRSs').text if soup.find('responseCRSs') else self.request_response_crs
 
         self.request_format = soup.find('formats').text
-
-        if soup.find('CoverageOffering').find('timePosition'):
-            self.time_position = soup.find('CoverageOffering').find('timePosition')
-        elif soup.find('CoverageOffering').find('timePeriod'):
-            period = soup.find('CoverageOffering').find('timePeriod')
+        coverage_offering = soup.find('CoverageOffering')
+        if coverage_offering.find('timePosition'):
+            self.time_position = coverage_offering.find('timePosition')
+        elif coverage_offering.find('timePeriod'):
+            period = coverage_offering.find('timePeriod')
             self.time_position = "{}/{}".format(period.find('beginPosition').text, period.find('endPosition').text)
             if period.find('timeResolution'):
                 self.time_position += "/{}".format(period.find('timeResolution').text)
+
+        self.parameter = None
+        self.parameter_value = None
+        axis_description = coverage_offering.find('AxisDescription')
+        if axis_description:
+            self.parameter = axis_description.find('name').text
+            self.parameter_value = axis_description.find('singleValue').text
+
+        self.interpolations = list(map(lambda f: f.text, soup.find_all('interpolationMethod')))
 
     def tearDown(self):
         pass

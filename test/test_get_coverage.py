@@ -15,6 +15,11 @@ class TestGetCoverage(TestWCSSpecification):
     Some of these test cases have 100% overlap and are omitted - Things like valid version/valid crs/valid {other field}
     all just expect all valid params and a valid response, so this is left out.
 
+    Other skipped tests:
+        wcs/1.0.0/getcoverage_operations/getcoverage_request/parameter/get/kvp/2
+            This test case directly conflicts with one of the general tests - any 'bogus' params are ignored, and should
+            not raise a service exception
+
     """
 
     def test_missing_version(self):
@@ -346,7 +351,7 @@ class TestGetCoverage(TestWCSSpecification):
             HEIGHT = [[VAR_WCS_COVERAGE_1_HEIGHT]]
             FORMAT = [[VAR_WCS_FORMAT_1]]
         Results:
-        	Valid XML where /ServiceExceptionReport/ServiceException exists. 
+        	Valid XML where /ServiceExceptionReport/ServiceException exists.
 
         """
 
@@ -364,6 +369,529 @@ class TestGetCoverage(TestWCSSpecification):
         }
         if self.time_position:
             params['TIME'] = self.time_position
+        response = self.query_server(params)
+        soup = BeautifulSoup(response.text, 'xml')
+        self.assertTrue(soup.find('ServiceException'))
+
+    def test_bbox_subset(self):
+        """
+        When a GetCoverage request is made with a BBOX partly contained in the defined Bounding BOX, the server should
+        return the requested content.
+
+        """
+
+        subset_bbox = list(map(lambda x: float(x), self.bbox.split(",")))
+        subset_bbox[0] += (subset_bbox[2] - subset_bbox[0]) / 2
+        subset_bbox[1] += (subset_bbox[3] - subset_bbox[1]) / 2
+        subset_bbox = "{},{},{},{}".format(subset_bbox[0], subset_bbox[1], subset_bbox[2], subset_bbox[3])
+
+        params = {
+            'ReQuEsT': "GetCoverage",
+            'SeRvIcE': "WCS",
+            'version': "1.0.0",
+            "HEIGHT": self.VAR_WCS_COVERAGE_1_HEIGHT,
+            "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
+            "COVERAGE": self.name,
+            "FORMAT": self.request_format,
+            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "BBOX": subset_bbox
+        }
+        if self.time_position:
+            params['TIME'] = self.time_position
+        # TODO: uncomment
+        # TODO: Verify that this is a subset?
+        # response = self.query_server(params)
+        # self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
+
+    def test_invalid_bbox(self):
+        """
+        When a GetCoverage request is made with a BBOX outside the defined Bounding BOX, the server returns service exception
+
+        Request#1:
+            SERVICE = WCS
+            VERSION = [[VAR_WCS_VERSION]]
+            REQUEST = DescribeCoverage
+            COVERAGE = [[VAR_WCS_COVERAGE_1]]
+        Request#2:
+            VERSION = [[VAR_WCS_VERSION]]
+            SERVICE = WCS
+            REQUEST = GetCoverage
+            COVERAGE = [[VAR_WCS_COVERAGE_1]]
+            CRS = [[VAR_WCS_COVERAGE_1_CRS]]
+            BBOX = [[VAR_WCS_COVERAGE_1_BBOX_OUTSIDE]]
+            WIDTH = [[VAR_WCS_COVERAGE_1_WIDTH]]
+            HEIGHT = [[VAR_WCS_COVERAGE_1_HEIGHT]]
+            FORMAT = [[VAR_WCS_FORMAT_1]]
+        Results:
+            Valid XML where /ServiceExceptionReport/ServiceException exists.
+
+        """
+
+        subset_bbox = list(map(lambda x: float(x), self.bbox.split(",")))
+        subset_bbox = [subset_bbox[2] + 1, subset_bbox[3] + 1, subset_bbox[2] + 10, subset_bbox[3] + 10]
+        subset_bbox = "{},{},{},{}".format(subset_bbox[0], subset_bbox[1], subset_bbox[2], subset_bbox[3])
+
+        params = {
+            'ReQuEsT': "GetCoverage",
+            'SeRvIcE': "WCS",
+            'version': "1.0.0",
+            "HEIGHT": self.VAR_WCS_COVERAGE_1_HEIGHT,
+            "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
+            "COVERAGE": self.name,
+            "FORMAT": self.request_format,
+            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "BBOX": subset_bbox
+        }
+        if self.time_position:
+            params['TIME'] = self.time_position
+        response = self.query_server(params)
+        soup = BeautifulSoup(response.text, 'xml')
+        self.assertTrue(soup.find('ServiceException'))
+
+    def test_missing_bbox_time(self):
+        """
+        When a GetCoverage request is made without a BBOX and without a TIME, the server returns service exception.
+
+        Request#1:
+            SERVICE = WCS
+            VERSION = [[VAR_WCS_VERSION]]
+            REQUEST = DescribeCoverage
+            COVERAGE = [[VAR_WCS_COVERAGE_1]]
+        Request#2:
+            VERSION = [[VAR_WCS_VERSION]]
+            SERVICE = WCS
+            REQUEST = GetCoverage
+            COVERAGE = [[VAR_WCS_COVERAGE_1]]
+            CRS = [[VAR_WCS_COVERAGE_1_CRS]]
+            WIDTH = [[VAR_WCS_COVERAGE_1_WIDTH]]
+            HEIGHT = [[VAR_WCS_COVERAGE_1_HEIGHT]]
+            FORMAT = [[VAR_WCS_FORMAT_1]]
+        Results:
+            Valid XML where /ServiceExceptionReport/ServiceException exists.
+
+        """
+
+        params = {
+            'ReQuEsT': "GetCoverage",
+            'SeRvIcE': "WCS",
+            'version': "1.0.0",
+            "HEIGHT": self.VAR_WCS_COVERAGE_1_HEIGHT,
+            "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
+            "COVERAGE": self.name,
+            "FORMAT": self.request_format,
+            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+        }
+
+        response = self.query_server(params)
+        soup = BeautifulSoup(response.text, 'xml')
+        self.assertTrue(soup.find('ServiceException'))
+
+    def test_time_position(self):
+        """
+        The server advertises the timePosition.
+        When a GetCoverage request is made with a VALID TIME, the server should return the requested content
+
+        Request#1:
+            SERVICE = WCS
+            VERSION = [[VAR_WCS_VERSION]]
+            REQUEST = DescribeCoverage
+            COVERAGE = [[VAR_WCS_COVERAGE_1]]
+        Request#2:
+            VERSION = 1.0.0
+            SERVICE = WCS
+            REQUEST = GetCoverage
+            COVERAGE = [[VAR_WCS_COVERAGE_1]]
+            CRS = [[VAR_WCS_COVERAGE_1_CRS]]
+            TIME = [[VAR_WCS_COVERAGE_1_TIME]]
+            WIDTH = [[VAR_WCS_COVERAGE_1_WIDTH]]
+            HEIGHT = [[VAR_WCS_COVERAGE_1_HEIGHT]]
+            FORMAT = [[VAR_WCS_FORMAT_1]]
+        Results:
+            Content-type header = [[VAR_WCS_FORMAT_1_HEADER
+
+        """
+
+        params = {
+            'ReQuEsT': "GetCoverage",
+            'SeRvIcE': "WCS",
+            'version': "1.0.0",
+            "HEIGHT": self.VAR_WCS_COVERAGE_1_HEIGHT,
+            "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
+            "COVERAGE": self.name,
+            "FORMAT": self.request_format,
+            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "BBOX": self.bbox
+        }
+        # this test is only applicable if the server advertises a time position
+        if self.time_position:
+            params['TIME'] = self.time_position
+            # TODO: uncomment
+            # response = self.query_server(params)
+            # self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
+
+    def test_invalid_time(self):
+        """
+        When a GetCoverage request is made with an invalid TIME, the server returns service exception.
+
+
+        Request#1:
+            SERVICE = WCS
+            VERSION = [[VAR_WCS_VERSION]]
+            REQUEST = DescribeCoverage
+            COVERAGE = [[VAR_WCS_COVERAGE_1]]
+        Request#2:
+            VERSION = [[VAR_WCS_VERSION]]
+            SERVICE = WCS
+            REQUEST = GetCoverage
+            COVERAGE = [[VAR_WCS_COVERAGE_1]]
+            TIME = WCS_TIME_INVALID
+            WIDTH = [[VAR_WCS_COVERAGE_1_WIDTH]]
+            HEIGHT = [[VAR_WCS_COVERAGE_1_HEIGHT]]
+            FORMAT = [[VAR_WCS_FORMAT_1]]
+        Results:
+            Valid XML where /ServiceExceptionReport/ServiceException exists.
+
+        """
+
+        params = {
+            'ReQuEsT': "GetCoverage",
+            'SeRvIcE': "WCS",
+            'version': "1.0.0",
+            "HEIGHT": self.VAR_WCS_COVERAGE_1_HEIGHT,
+            "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
+            "COVERAGE": self.name,
+            "FORMAT": self.request_format,
+            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "BBOX": self.bbox
+        }
+        # this test is only applicable if the server advertises a time position
+        if self.time_position:
+            # clearly not a valid time
+            params['TIME'] = "asdfasdfasfasdf"
+            response = self.query_server(params)
+            soup = BeautifulSoup(response.text, 'xml')
+            self.assertTrue(soup.find('ServiceException'))
+
+    def test_invalid_parameter_value(self):
+        """
+        When a GetCoverage request is made with a PARAMETER name that is listed in the range set, but PARAMETER signed
+        a value that is not defined in AxisDescription, the server returns service exception.
+
+        Request#1:
+            SERVICE = WCS
+            VERSION = [[VAR_WCS_VERSION]]
+            REQUEST = DescribeCoverage
+            COVERAGE = [[VAR_WCS_COVERAGE_1]]
+        Request#2:
+            VERSION = [[VAR_WCS_VERSION]]
+            SERVICE = WCS
+            REQUEST = GetCoverage
+            COVERAGE = [[VAR_WCS_COVERAGE_1]]
+            CRS = [[VAR_WCS_COVERAGE_1_CRS]]
+            BBOX = [[VAR_WCS_COVERAGE_1_BBOX]]
+            WIDTH = [[VAR_WCS_COVERAGE_1_WIDTH]]
+            HEIGHT = [[VAR_WCS_COVERAGE_1_HEIGHT]]
+            FORMAT = [[VAR_WCS_FORMAT_1]]
+            [[VAR_WCS_PARAMETER]] = WCS_PARAMETER_VALUE_INVALID
+        Results:
+        	Valid XML where /ServiceExceptionReport/ServiceException exists.
+
+        """
+
+        params = {
+            'ReQuEsT': "GetCoverage",
+            'SeRvIcE': "WCS",
+            'version': "1.0.0",
+            "HEIGHT": self.VAR_WCS_COVERAGE_1_HEIGHT,
+            "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
+            "COVERAGE": self.name,
+            "FORMAT": self.request_format,
+            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "BBOX": self.bbox
+        }
+        # this test is only applicable if the server advertises a time position
+        if self.time_position:
+            # clearly not a valid time
+            params['TIME'] = self.time_position
+        if self.parameter:
+            params[self.parameter] = "asdfasdfasdf"
+            response = self.query_server(params)
+            soup = BeautifulSoup(response.text, 'xml')
+            self.assertTrue(soup.find('ServiceException'))
+
+    def test_correct_parameter(self):
+        """
+        When a GetCoverage request is made with a PARAMETER name that is listed in the range set, PARAMETER signed
+        value that is defined in AxisDescription, the server should return the requested content.
+
+        Request#1:
+            SERVICE = WCS
+            VERSION = [[VAR_WCS_VERSION]]
+            REQUEST = DescribeCoverage
+            COVERAGE = [[VAR_WCS_COVERAGE_1]]
+        Request#2:
+            VERSION = [[VAR_WCS_VERSION]]
+            SERVICE = WCS
+            REQUEST = GetCoverage
+            COVERAGE = [[VAR_WCS_COVERAGE_1]]
+            CRS = [[VAR_WCS_COVERAGE_1_CRS]]
+            BBOX = [[VAR_WCS_COVERAGE_1_BBOX]]
+            WIDTH = [[VAR_WCS_COVERAGE_1_WIDTH]]
+            HEIGHT = [[VAR_WCS_COVERAGE_1_HEIGHT]]
+            FORMAT = [[VAR_WCS_FORMAT_1]]
+            [[VAR_WCS_PARAMETER]] = [[VAR_WCS_PARAMETER_VALUE]]
+        Results:
+        	Content-type header = [[VAR_WCS_COVERAGE_FORMAT
+
+        """
+
+        params = {
+            'ReQuEsT': "GetCoverage",
+            'SeRvIcE': "WCS",
+            'version': "1.0.0",
+            "HEIGHT": self.VAR_WCS_COVERAGE_1_HEIGHT,
+            "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
+            "COVERAGE": self.name,
+            "FORMAT": self.request_format,
+            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "BBOX": self.bbox
+        }
+        # this test is only applicable if the server advertises a time position
+        if self.time_position:
+            # clearly not a valid time
+            params['TIME'] = self.time_position
+        if self.parameter:
+            params[self.parameter] = self.parameter_value
+            # TODO: uncomment
+            # response = self.query_server(params)
+            # self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
+
+    def test_missing_grid_size(self):
+        """
+        When a GetCoverage request is made without a specific grid size and without a grid resolution, the server returns service exception
+
+        Request#1:
+            SERVICE = WCS
+            VERSION = [[VAR_WCS_VERSION]]
+            REQUEST = DescribeCoverage
+            COVERAGE = [[VAR_WCS_COVERAGE_1]]
+        Request#2:
+            VERSION = [[VAR_WCS_VERSION]]
+            SERVICE = WCS
+            REQUEST = GetCoverage
+            COVERAGE = [[VAR_WCS_COVERAGE_1]]
+            CRS = [[VAR_WCS_COVERAGE_1_CRS]]
+            BBOX = [[VAR_WCS_COVERAGE_1_BBOX]]
+            FORMAT = [[VAR_WCS_FORMAT_1]]
+        Results:
+        	Valid XML where /ServiceExceptionReport/ServiceException exists.
+
+        """
+
+        params = {
+            'ReQuEsT': "GetCoverage",
+            'SeRvIcE': "WCS",
+            'version': "1.0.0",
+            "COVERAGE": self.name,
+            "FORMAT": self.request_format,
+            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "BBOX": self.bbox
+        }
+        # this test is only applicable if the server advertises a time position
+        if self.time_position:
+            # clearly not a valid time
+            params['TIME'] = self.time_position
+        response = self.query_server(params)
+        soup = BeautifulSoup(response.text, 'xml')
+        self.assertTrue(soup.find('ServiceException'))
+
+    def test_grid_resolution(self):
+        """
+        When a GetCoverage request is made with a specific grid resolution, the server should return the requested content .
+
+        Request#1:
+            SERVICE = WCS
+            VERSION = [[VAR_WCS_VERSION]]
+            REQUEST = DescribeCoverage
+            COVERAGE = [[VAR_WCS_COVERAGE_1]]
+        Request#2:
+            VERSION = 1.0.0
+            SERVICE = WCS
+            REQUEST = GetCoverage
+            COVERAGE = [[VAR_WCS_COVERAGE_1]]
+            CRS = [[VAR_WCS_COVERAGE_1_CRS]]
+            BBOX = [[VAR_WCS_COVERAGE_1_BBOX]]
+            RESX = [[VAR_WCS_COVERAGE_1_RESX]]
+            RESY = [[VAR_WCS_COVERAGE_1_RESY]]
+            FORMAT = [[VAR_WCS_FORMAT_1]]
+        Results:
+        	Content-type header = [[VAR_WCS_FORMAT_1_HEADER]]
+
+        """
+
+        params = {
+            'ReQuEsT': "GetCoverage",
+            'SeRvIcE': "WCS",
+            'version': "1.0.0",
+            "RESX": self.VAR_WCS_COVERAGE_1_RESX,
+            "RESY": self.VAR_WCS_COVERAGE_1_RESY,
+            "COVERAGE": self.name,
+            "FORMAT": self.request_format,
+            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "BBOX": self.bbox
+        }
+        # this test is only applicable if the server advertises a time position
+        if self.time_position:
+            # clearly not a valid time
+            params['TIME'] = self.time_position
+
+        # TODO: uncomment
+        # response = self.query_server(params)
+        # self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
+
+    def test_invalid_format(self):
+        """
+        When a GetCoverage request is made with a FORMAT not listed in a supportedFormats/formats under the selected
+        coverage offering in the DescribeCoverage reply, the server returns service exception.
+
+            Request#1:
+                SERVICE = WCS
+                VERSION = [[VAR_WCS_VERSION]]
+                REQUEST = DescribeCoverage
+                COVERAGE = [[VAR_WCS_COVERAGE_1]]
+            Request#2:
+                VERSION = 1.0.0
+                SERVICE = WCS
+                REQUEST = GetCoverage
+                COVERAGE = [[VAR_WCS_COVERAGE_1]]
+                CRS = [[VAR_WCS_COVERAGE_1_CRS]]
+                BBOX = [[VAR_WCS_COVERAGE_1_BBOX]]
+                WIDTH = [[VAR_WCS_COVERAGE_1_WIDTH]]
+                HEIGHT = [[VAR_WCS_COVERAGE_1_HEIGHT]]
+                FORMAT = WCS_FORMAT_INVALID
+            Results:
+            	Valid XML where /ServiceExceptionReport/ServiceException exists.
+
+        """
+
+        params = {
+            'ReQuEsT': "GetCoverage",
+            'SeRvIcE': "WCS",
+            'version': "1.0.0",
+            "HEIGHT": self.VAR_WCS_COVERAGE_1_HEIGHT,
+            "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
+            "COVERAGE": self.name,
+            "FORMAT": "asdfasdfasdf",
+            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "BBOX": self.bbox
+        }
+        # this test is only applicable if the server advertises a time position
+        if self.time_position:
+            # clearly not a valid time
+            params['TIME'] = self.time_position
+        response = self.query_server(params)
+        soup = BeautifulSoup(response.text, 'xml')
+        self.assertTrue(soup.find('ServiceException'))
+
+    def test_missing_format(self):
+        """
+        When a GetCoverage request is made without a FORMAT, the server returns service exception.
+
+        Request#1:
+            SERVICE = WCS
+            VERSION = [[VAR_WCS_VERSION]]
+            REQUEST = DescribeCoverage
+            COVERAGE = [[VAR_WCS_COVERAGE_1]]
+        Request#2:
+            VERSION = 1.0.0
+            SERVICE = WCS
+            REQUEST = GetCoverage
+            COVERAGE = [[VAR_WCS_COVERAGE_1]]
+            CRS = [[VAR_WCS_COVERAGE_1_CRS]]
+            BBOX = [[VAR_WCS_COVERAGE_1_BBOX]]
+            WIDTH = [[VAR_WCS_COVERAGE_1_WIDTH]]
+            HEIGHT = [[VAR_WCS_COVERAGE_1_HEIGHT]]
+        Results:
+        	Valid XML where /ServiceExceptionReport/ServiceException exists.
+
+        """
+
+        params = {
+            'ReQuEsT': "GetCoverage",
+            'SeRvIcE': "WCS",
+            'version': "1.0.0",
+            "HEIGHT": self.VAR_WCS_COVERAGE_1_HEIGHT,
+            "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
+            "COVERAGE": self.name,
+            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "BBOX": self.bbox
+        }
+        # this test is only applicable if the server advertises a time position
+        if self.time_position:
+            # clearly not a valid time
+            params['TIME'] = self.time_position
+        response = self.query_server(params)
+        soup = BeautifulSoup(response.text, 'xml')
+        self.assertTrue(soup.find('ServiceException'))
+
+    # section 9.2.2.13 Exception doesn't make much sense... skipping
+
+    def test_valid_interpolation(self):
+        """
+        When a GetCoverage request is made with an INTERPLOATIONMETHOD value that is listed in the CoverageDescription,
+        the server should return the requested content
+
+        The request/response docs here are jumbled/not formatted properly on the site.
+
+        """
+
+        params = {
+            'ReQuEsT': "GetCoverage",
+            'SeRvIcE': "WCS",
+            'version': "1.0.0",
+            "HEIGHT": self.VAR_WCS_COVERAGE_1_HEIGHT,
+            "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
+            "COVERAGE": self.name,
+            "FORMAT": self.request_format,
+            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "BBOX": self.bbox,
+            'INTERPLATION': self.interpolations[0]
+        }
+        # this test is only applicable if the server advertises a time position
+        if self.time_position:
+            # clearly not a valid time
+            params['TIME'] = self.time_position
+
+        # TODO: uncomment
+        # response = self.query_server(params)
+        # self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
+
+    def test_invalid_interpolation(self):
+        """
+        When a GetCoverage request is made with a FORMAT not listed in a supportedFormats/formats under the selected
+        coverage offering in the DescribeCoverage reply, the server returns service exception.
+
+        The request/response docs here are jumbled/not formatted properly on the site.
+
+        """
+
+        params = {
+            'ReQuEsT': "GetCoverage",
+            'SeRvIcE': "WCS",
+            'version': "1.0.0",
+            "HEIGHT": self.VAR_WCS_COVERAGE_1_HEIGHT,
+            "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
+            "COVERAGE": self.name,
+            "FORMAT": self.request_format,
+            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "BBOX": self.bbox,
+            'INTERPLATION': "asdfasdfasdf"
+        }
+        # this test is only applicable if the server advertises a time position
+        if self.time_position:
+            # clearly not a valid time
+            params['TIME'] = self.time_position
+
         response = self.query_server(params)
         soup = BeautifulSoup(response.text, 'xml')
         self.assertTrue(soup.find('ServiceException'))
