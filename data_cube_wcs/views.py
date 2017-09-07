@@ -203,6 +203,15 @@ class GetCoverage(View):
         """
 
         get_data = {key.lower(): val for key, val in request.GET.items()}
+
+        if 'version' not in get_data or get_data['version'] != "1.0.0":
+            response = render_to_response('ServiceException.xml', {
+                'exception_code': "MissingParameterValue",
+                'error_msg': "Version is a required parameter for DescribeCoverage requests"
+            })
+            response['Content-Type'] = 'application/vnd.ogc.se_xml'
+            return response
+
         coverage_data = forms.GetCoverageForm(get_data)
         if not coverage_data.is_valid():
             for error in coverage_data.errors:
