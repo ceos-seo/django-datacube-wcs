@@ -31,10 +31,10 @@ Installation
 
 ![Installed apps](docs/media/settings_urls.png)
 
-3. Create the initial database migrations:
+3. Create the initial database migrations and load fixtures:
 
 ```
-python manage.py makemigrations data_cube_wcs && python manage.py migrate
+python manage.py makemigrations data_cube_wcs && python manage.py migrate && python manage.py loaddata apps/data_cube_wcs/fixtures/init.json
 ```
 
 4. Generate the coverage details for your Data Cube products

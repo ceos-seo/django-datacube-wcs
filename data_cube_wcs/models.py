@@ -97,7 +97,7 @@ class CoverageOffering(models.Model):
                 try:
                     new_model = cls(**model)
                     model.save()
-                    model.available_formats = Format.objects.filter(name="GeoTIFF")
+                    model.available_formats.add(Format.objects.get(name="GeoTIFF"))
                     model.save()
                 except IntegrityError:
                     cls.objects.filter(name=model['name']).update(**model)
@@ -166,7 +166,7 @@ class CoverageRangesetEntry(models.Model):
 class Format(models.Model):
     """Contains a format and the content-type headers for a GetCoverage response"""
 
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, unique=True)
     content_type = models.CharField(max_length=50)
 
     def __str__(self):
