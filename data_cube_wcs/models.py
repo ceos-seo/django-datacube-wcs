@@ -96,9 +96,9 @@ class CoverageOffering(models.Model):
             for model in list_of_dicts:
                 try:
                     new_model = cls(**model)
-                    model.save()
-                    model.available_formats.add(Format.objects.get(name="GeoTIFF"))
-                    model.save()
+                    new_model.save()
+                    new_model.available_formats.add(Format.objects.get(name="GeoTIFF"))
+                    new_model.save()
                 except IntegrityError:
                     cls.objects.filter(name=model['name']).update(**model)
 

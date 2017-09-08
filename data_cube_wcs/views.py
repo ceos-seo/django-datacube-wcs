@@ -227,6 +227,6 @@ class GetCoverage(View):
 
         response_mapping = {'GeoTIFF': utils.get_tiff_response, 'netCDF': utils.get_netcdf_response}
         return HttpResponse(
-            response_mapping[coverage_data.cleaned_data['format']](coverage_data.cleaned_data['coverage'], dataset,
-                                                                   coverage_data.cleaned_data['response_crs']),
-            content_type=forms.AVAILABLE_FORMATS[coverage_data.cleaned_data['format']])
+            response_mapping[coverage_data.cleaned_data['format'].name](coverage_data.cleaned_data['coverage'], dataset,
+                                                                        coverage_data.cleaned_data['response_crs']),
+            content_type=coverage_data.cleaned_data['format'].content_type)

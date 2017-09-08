@@ -57,7 +57,7 @@
   </supportedCRSs>
   <supportedFormats nativeFormat="GeoTIFF">
     {% for format in coverage_offering.available_formats.all %}
-      <formats>{{ format }}</formats>
+      <formats>{{ format.name }}</formats>
     {% endfor %}
   </supportedFormats>
   <supportedInterpolations default="nearest neighbor">

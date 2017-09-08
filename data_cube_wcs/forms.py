@@ -15,8 +15,6 @@ exception_codes = [
 AVAILABLE_INPUT_CRS = []
 AVAILABLE_OUTPUT_CRS = []
 AVAILABLE_INPUT_OUTPUT_CRS = ["EPSG:4326"]
-ORDERED_FORMATS = ('GeoTIFF', 'RGB_GeoTIFF')
-AVAILABLE_FORMATS = {'GeoTIFF': 'image/tiff', 'netCDF': 'application/x-netcdf'}
 INTERPOLATION_OPTIONS = {'nearest neighbor': 'nearest', 'bilinear': 'bilinear', 'bicubic': 'cubic'}
 
 
@@ -78,9 +76,9 @@ class GetCoverageForm(BaseRequestForm):
         choices=((option, option) for option in INTERPOLATION_OPTIONS),
         initial="nearest neighbor",
         error_messages={"invalid_choice": "InvalidParameterValue"})
-    format = forms.ChoiceField(
-        choices=((option, option) for option in AVAILABLE_FORMATS),
-        initial="GeoTIFF",
+    format = forms.ModelChoiceField(
+        queryset=models.Format.objects.all(),
+        to_field_name='name',
         error_messages={"required": "InvalidFormat",
                         "invalid_choice": "InvalidFormat"})
     exceptions = forms.CharField(required=False, initial="application/vnd.ogc.se_xml")
