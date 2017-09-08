@@ -88,6 +88,23 @@ def get_stacked_dataset(parameters, individual_dates, date_ranges):
     return data
 
 
+def create_bit_mask(data_array, valid_bits, no_data=-9999):
+    """Create a boolean bit mask from a list of valid bits
+    Args:
+        data_array: xarray data array to extract bit information for.
+        valid_bits: array of ints representing what bits should be considered valid.
+        nodata: nodata value for the data array.
+    Returns:
+        Boolean mask signifying valid data.
+    """
+    assert isinstance(valid_bits, list) and isinstance(valid_bits[0], int), "Valid bits must be a list of integer bits"
+    #do bitwise and on valid mask - all zeros means no intersection e.g. invalid else return a truthy value?
+    valid_mask = sum([1 << valid_bit for valid_bit in valid_bits])
+    clean_mask = (data_array & valid_mask).astype('bool')
+
+    return clean_mask.values
+
+
 def get_datacube_metadata(dc, product):
     """Get the extents and number of tiles for a given product"""
     dataset = dc.load(product, dask_chunks={})
@@ -157,7 +174,10 @@ def get_tiff_response(coverage_offering, dataset, crs):
                 dtype=dtype) as dst:
             for idx, band in enumerate(dataset.data_vars, start=1):
                 dst.write(dataset[band].values, idx)
-            dst.set_nodatavals([rangeset.get(band_name=band).null_value for band in dataset.data_vars])
+            dst.set_nodatavals([
+                rangeset.get(band_name=band).null_value if rangeset.filter(band_name=band).exists() else 0
+                for band in dataset.data_vars
+            ])
         return memfile.read()
 
 

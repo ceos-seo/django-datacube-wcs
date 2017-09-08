@@ -19,7 +19,7 @@ class CoverageOffering(models.Model):
     end_time = models.DateTimeField()
 
     crs = models.CharField(max_length=50)
-    available_formats = models.ManyToManyField('Format', null=True, blank=True)
+    available_formats = models.ManyToManyField('Format', blank=True)
 
     offer_temporal = models.BooleanField(default=True)
 
@@ -193,6 +193,7 @@ class Format(models.Model):
         response_mapping = {
             'GeoTIFF': utils.get_tiff_response,
             'RGB_GeoTIFF': utils.get_tiff_response,
+            'Filtered_GeoTIFF': utils.get_tiff_response,
             'netCDF': utils.get_netcdf_response
         }
         return response_mapping.get(self.name, utils.get_tiff_response)(
@@ -208,15 +209,29 @@ class Format(models.Model):
         and on self.name
 
         """
-        """processing_map = {
+
+        def abs_divide(ds, bands):
+            ds['division'] = abs(ds[bands[0]] / ds[bands[1]])
+            return ds
+
+        # this is pretty much all bad
+        processing_map = {
             'RGB_GeoTIFF': {
-                'landsat': x,
-                's1_gamma': y,
-                'alos': z,
+                'landsat': lambda ds: ds[['red', 'green', 'blue']],
+                'alos': lambda ds: ds.pipe(abs_divide, bands=['hh', 'hv']).fillna(0),
+                'sentinel': lambda ds: ds.pipe(abs_divide, bands=['vv', 'vh']).fillna(0)
             },
             'Filtered_GeoTIFF': {
-                'landsat': x
+                'landsat': lambda ds: ds[['red', 'green', 'blue','nir','swir1','swir2']]
+                                        .where(utils.create_bit_mask(ds['pixel_qa'], valid_bits=[1, 2]))
+                                        .fillna(-9999)
             }
-        }"""
+        }
 
-        return processing_map.get(self.name, lambda d: d)(dataset)
+        _type = 'landsat' if any(
+            ext in coverage_offering.name for ext in ['ls5', 'ls7', 'ls8']
+        ) else 'sentinel' if 's1_gamma' in coverage_offering.name else 'alos' if 'alos' in coverage_offering.name else ""
+
+        processing_function = processing_map.get(self.name, {}).get(_type, lambda d: d)
+
+        return dataset.pipe(processing_function)
