@@ -264,7 +264,9 @@ class TestGeneralRequests(TestWCSSpecification):
 
         params_65 = {'SeRvIcE': "wcs", 'ReQuEsT': "DescribeCoverage"}
         response = self.query_server(params_65)
-        self.assertTrue(response.headers['content-type'] == "application/vnd.ogc.se_xml")
+        self.assertTrue(
+            "application/vnd.ogc.se_xml" in response.headers['content-type'],
+            msg="The service exception content type should include vnd.ogc.se_xml as per the WCS 1.0 specification.")
         soup = BeautifulSoup(response.text, 'xml')
         self.assertTrue(
             soup.find('ServiceExceptionReport'),

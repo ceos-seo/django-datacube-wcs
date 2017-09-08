@@ -2,6 +2,7 @@ import unittest
 import requests
 
 from bs4 import BeautifulSoup
+from urllib.parse import urlparse
 
 from .test_wcs_spec import TestWCSSpecification
 
@@ -264,5 +265,5 @@ class TestGetCapabilities(TestWCSSpecification):
         soup = BeautifulSoup(response.text, 'xml')
         for entry in soup.find_all('OnlineResource'):
             self.assertTrue(
-                entry.attrs['xlink:href'].endswith("?") and self.BASE_WCS_URL in entry.attrs['xlink:href'],
+                entry.attrs['xlink:href'].endswith("?") and urlparse(entry.attrs['xlink:href']),
                 msg="All returned GetCapabilities urls should be valid urls ending with a ?.")
