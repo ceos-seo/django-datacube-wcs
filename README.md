@@ -12,8 +12,15 @@ Requirements
 - A working Data Cube installation and data
 - Python 3+
 - Django >= 1.8
+- bs4
+- numpy
+- xarray
+- rasterio
+- configparser
+- pytz
+- dateutil
 
-* All functionality tested using Python 3.5 and Django 1.11
+*All functionality tested using Python 3.5 and Django 1.11*
 
 Installation
 ------------
