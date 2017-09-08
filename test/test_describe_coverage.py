@@ -14,18 +14,6 @@ class TestDescribeCoverage(TestWCSSpecification):
 
     """
 
-    def setUp(self):
-        params_82 = {
-            'ReQuEsT': "GetCapabilities",
-            'VeRsIoN': "1.0.0",
-            'SeRvIcE': "WCS",
-            "BOGUS": "SSS",
-            "SECTION": "/WCS_Capabilities/ContentMetadata"
-        }
-        response = self.query_server(params_82)
-        soup = BeautifulSoup(response.text, 'xml')
-        self.names = list(map(lambda n: n.text, soup.find_all('name')[0:2]))
-
     def test_missing_version(self):
         """
         When a DescribeCoverage request is made without version, the server returns service exception.
@@ -42,7 +30,9 @@ class TestDescribeCoverage(TestWCSSpecification):
         params_82 = {'ReQuEsT': "DescribeCoverage", 'SeRvIcE': "WCS", "BOGUS": "SSS"}
         response = self.query_server(params_82)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('ServiceExceptionReport'))
+        self.assertTrue(
+            soup.find('ServiceExceptionReport'),
+            msg="The server should return an exception if the version is not included in a DescribeCoverage request.")
 
     def test_invalid_version(self):
         """
@@ -61,7 +51,10 @@ class TestDescribeCoverage(TestWCSSpecification):
         params_82 = {'ReQuEsT': "DescribeCoverage", 'SeRvIcE': "WCS", "BOGUS": "SSS", 'Version': "0.0.0.0"}
         response = self.query_server(params_82)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('ServiceExceptionReport'))
+        self.assertTrue(
+            soup.find('ServiceExceptionReport'),
+            msg="The server should return an exception if an invalid version is submitted with a DescribeCoverage request."
+        )
 
     def test_missing_coverage(self):
         """
@@ -73,7 +66,9 @@ class TestDescribeCoverage(TestWCSSpecification):
         params_82 = {'ReQuEsT': "DescribeCoverage", 'SeRvIcE': "WCS", 'Version': "1.0.0"}
         response = self.query_server(params_82)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(len(soup.find_all('CoverageOffering')) > 1)
+        self.assertTrue(
+            len(soup.find_all('CoverageOffering')) > 1,
+            msg="If coverage is not populated in a DescribeCoverage request all coverages should be returned.")
 
     def test_multiple_coverages(self):
         """
@@ -100,9 +95,14 @@ class TestDescribeCoverage(TestWCSSpecification):
         }
         response = self.query_server(params_82)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(len(soup.find_all('CoverageOffering')) == len(self.names))
+        self.assertTrue(
+            len(soup.find_all('CoverageOffering')) == len(self.names),
+            msg="If multiple valid coverages are submitted with a DescribeCoverage request, all requested coverages should be returned."
+        )
         for elem in soup.find_all('CoverageOffering'):
-            self.assertTrue(elem.find('name').text in self.names)
+            self.assertTrue(
+                elem.find('name').text in self.names,
+                msg="All requested coverages should be returned in a DescribeCoverage request.")
 
     def test_invalid_coverage(self):
         """
@@ -128,7 +128,9 @@ class TestDescribeCoverage(TestWCSSpecification):
         }
         response = self.query_server(params_82)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('ServiceExceptionReport'))
+        self.assertTrue(
+            soup.find('ServiceExceptionReport'),
+            msg="The server should return an exception if a DescribeCoverage request is made with an invalid coverage.")
 
     def test_single_invalid_coverage(self):
         """
@@ -155,7 +157,10 @@ class TestDescribeCoverage(TestWCSSpecification):
         }
         response = self.query_server(params_82)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('ServiceExceptionReport'))
+        self.assertTrue(
+            soup.find('ServiceExceptionReport'),
+            msg="The server should return an exception if any invalid coverages are submitted in a DescribeCoverage request."
+        )
 
     def test_supported_formats_interpolations(self):
         """
@@ -181,9 +186,12 @@ class TestDescribeCoverage(TestWCSSpecification):
         response = self.query_server(params_82)
         soup = BeautifulSoup(response.text, 'xml')
         formats = list(map(lambda f: f.text, soup.find_all('formats')))
-        self.assertTrue(len(set(["GeoTIFF", "HDF-EOS", "DTED", "NITF", "GML"]).intersection(formats)) > 0)
+        self.assertTrue(
+            len(set(["GeoTIFF", "HDF-EOS", "DTED", "NITF", "GML"]).intersection(formats)) > 0,
+            msg="The first format returned in a coverage description should be one of the five defined in the spec.")
         interpolations = list(map(lambda f: f.text, soup.find_all('interpolationMethod')))
         self.assertTrue(
             len(
                 set(["nearest neighbor", "bilinear", "bicubic", "lost area", "barycentric"]).intersection(
-                    interpolations)) > 0)
+                    interpolations)) > 0,
+            msg="Supported interpolations must be one of the five defined in the spec.")
