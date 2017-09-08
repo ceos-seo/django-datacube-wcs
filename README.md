@@ -32,11 +32,13 @@ Installation
 ![Installed apps](docs/media/settings_urls.png)
 
 3. Create the initial database migrations:
+
 ```
 python manage.py makemigrations data_cube_wcs && python manage.py migrate
 ```
 
 4. Generate the coverage details for your Data Cube products
+
 ```
 python manage.py shell
 
@@ -50,6 +52,7 @@ CoverageOffering.update_or_create_coverages(update_aux=True)
 6. Restart your webserver
 
 7. Run tests if desired. Change the base url in the test/test_wcs_spec.py file and run the tests with nose
+
 ```
 nosetests
 ```
