@@ -33,7 +33,9 @@ class TestGeneralRequests(TestWCSSpecification):
         params_62 = {'VERSION': "", 'SERVICE': "WCS", 'REQUEST': "GetCapabilities"}
         response = self.query_server(params_62)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('WCS_Capabilities').attrs['version'] == "1.0.0")
+        self.assertTrue(
+            soup.find('WCS_Capabilities').attrs['version'] == "1.0.0",
+            msg="When version is ommitted for a GetCapabilities request the version returned should be 1.0.0.")
 
     def test_supported_version(self):
         """
@@ -50,7 +52,9 @@ class TestGeneralRequests(TestWCSSpecification):
 
         response = self.query_server()
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('WCS_Capabilities').attrs['version'] == "1.0.0")
+        self.assertTrue(
+            soup.find('WCS_Capabilities').attrs['version'] == "1.0.0",
+            msg="When a GetCapabilities request is made for version 1.0.0 the response should be version 1.0.0.")
 
     def test_unknown_version(self):
         """
@@ -69,7 +73,9 @@ class TestGeneralRequests(TestWCSSpecification):
         params_62 = {'VERSION': "1.0.2", 'SERVICE': "WCS", 'REQUEST': "GetCapabilities"}
         response = self.query_server(params_62)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('WCS_Capabilities').attrs['version'] == "1.0.0")
+        self.assertTrue(
+            soup.find('WCS_Capabilities').attrs['version'] == "1.0.0",
+            msg="When a higher version is requested in a GetCapabilities call, the response should be version 1.0.0.")
 
     def test_low_version(self):
         """
@@ -88,7 +94,9 @@ class TestGeneralRequests(TestWCSSpecification):
         params_62 = {'VERSION': "0.8.0", 'SERVICE': "WCS", 'REQUEST': "GetCapabilities"}
         response = self.query_server(params_62)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('WCS_Capabilities').attrs['version'] == "1.0.0")
+        self.assertTrue(
+            soup.find('WCS_Capabilities').attrs['version'] == "1.0.0",
+            msg="When a lower version is requested in a GetCapabilities call, the response should be version 1.0.0.")
 
     def test_parameters_case_sensitivity(self):
         """
@@ -106,7 +114,9 @@ class TestGeneralRequests(TestWCSSpecification):
         params_63 = {'ReQuEsT': "GetCapabilities", 'VeRsIoN': "1.0.0", 'SeRvIcE': "WCS"}
         response = self.query_server(params_63)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('WCS_Capabilities').attrs['version'] == "1.0.0")
+        self.assertTrue(
+            soup.find('WCS_Capabilities').attrs['version'] == "1.0.0",
+            msg="Parameter names should be case insensitive for all requests.")
 
     def test_parameter_values_case_sensititivity(self):
         """
@@ -125,7 +135,8 @@ class TestGeneralRequests(TestWCSSpecification):
         params_63 = {'VeRsIoN': "1.0.0", 'SeRvIcE': "wcs", 'ReQuEsT': "getcapabilities"}
         response = self.query_server(params_63)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('ServiceExceptionReport'))
+        self.assertTrue(
+            soup.find('ServiceExceptionReport'), msg="Parameter values should be case sensitive for all inputs.")
 
     def test_unordered_parameters(self):
         """
@@ -143,7 +154,9 @@ class TestGeneralRequests(TestWCSSpecification):
         params_63 = {'SeRvIcE': "WCS", 'VeRsIoN': "1.0.0", 'ReQuEsT': "GetCapabilities"}
         response = self.query_server(params_63)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('WCS_Capabilities').attrs['version'] == "1.0.0")
+        self.assertTrue(
+            soup.find('WCS_Capabilities').attrs['version'] == "1.0.0",
+            msg="Parameters can be submitted in any order and the response should be valid.")
 
     def test_get_capabilities_unsupported_parameters(self):
         """
@@ -162,7 +175,9 @@ class TestGeneralRequests(TestWCSSpecification):
         params_63 = {'ReQuEsT': "GetCapabilities", 'VeRsIoN': "1.0.0", 'SeRvIcE': "WCS", "BOGUS": "SSS"}
         response = self.query_server(params_63)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('WCS_Capabilities').attrs['version'] == "1.0.0")
+        self.assertTrue(
+            soup.find('WCS_Capabilities').attrs['version'] == "1.0.0",
+            msg="Any unsupported parameters should be ignored.")
 
     def test_describe_coverage_unsupported_parameters(self):
         """
@@ -182,7 +197,9 @@ class TestGeneralRequests(TestWCSSpecification):
         params_63 = {'ReQuEsT': "DescribeCoverage", 'VeRsIoN': "1.0.0", 'SeRvIcE': "WCS", "BOGUS": "SSS"}
         response = self.query_server(params_63)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('CoverageDescription').attrs['version'] == "1.0.0")
+        self.assertTrue(
+            soup.find('CoverageDescription').attrs['version'] == "1.0.0",
+            msg="Any unsupported parameters should be ignored.")
 
     def test_get_coverage_unsupported_parameters(self):
         """
@@ -228,7 +245,9 @@ class TestGeneralRequests(TestWCSSpecification):
         }
 
         response = self.query_server(params_63)
-        self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
+        self.assertTrue(
+            response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER,
+            msg="Any unsupported parameters should be ignored.")
 
     def test_service_exception(self):
         """
@@ -247,4 +266,6 @@ class TestGeneralRequests(TestWCSSpecification):
         response = self.query_server(params_65)
         self.assertTrue(response.headers['content-type'] == "application/vnd.ogc.se_xml")
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('ServiceExceptionReport'))
+        self.assertTrue(
+            soup.find('ServiceExceptionReport'),
+            msg="The service exception should be static as per the WCS 1.0 specification.")
