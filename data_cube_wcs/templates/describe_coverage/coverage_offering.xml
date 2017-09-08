@@ -4,7 +4,7 @@
   <label>{{ coverage_offering.label }}</label>
   <domainSet>
     <spatialDomain>
-      <gml:Envelope srsName="EPSG:4326">
+      <gml:Envelope srsName="{{ coverage_offering.crs }}">
         <gml:pos>{{ coverage_offering.get_min_point }}</gml:pos>
         <gml:pos>{{ coverage_offering.get_max_point }}</gml:pos>
       </gml:Envelope>
@@ -48,9 +48,7 @@
     {% for crs in available_output_crs %}
       <responseCRSs>{{ crs }}</responseCRSs>
     {% endfor %}
-    {% for crs in native_crs %}
-      <nativeCRSs>{{ crs }}</nativeCRSs>
-    {% endfor %}
+    <nativeCRSs>{{ coverage_offering.crs }}</nativeCRSs>
   </supportedCRSs>
   <supportedFormats nativeFormat="GeoTIFF">
     {% for format in valid_formats %}

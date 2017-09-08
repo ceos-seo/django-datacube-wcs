@@ -18,6 +18,8 @@ class CoverageOffering(models.Model):
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
 
+    crs = models.CharField(max_length=50)
+
     offer_temporal = models.BooleanField(default=True)
 
     def get_min_point(self):
@@ -84,7 +86,7 @@ class CoverageOffering(models.Model):
 
             list_of_dicts = product_details[[
                 'name', 'description', 'label', 'min_latitude', 'max_latitude', 'min_longitude', 'max_longitude',
-                'start_time', 'end_time'
+                'start_time', 'end_time', 'crs'
             ]].to_dict('records')
 
             for model in list_of_dicts:
