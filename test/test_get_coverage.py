@@ -58,7 +58,8 @@ class TestGetCoverage(TestWCSSpecification):
             params['TIME'] = self.time_position
         response = self.query_server(params)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('ServiceException'))
+        self.assertTrue(
+            soup.find('ServiceException'), msg="If no version is submitted then an exception should be returned.")
 
     def test_invalid_version(self):
         """
@@ -99,7 +100,9 @@ class TestGetCoverage(TestWCSSpecification):
             params['TIME'] = self.time_position
         response = self.query_server(params)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('ServiceException'))
+        self.assertTrue(
+            soup.find('ServiceException'),
+            msg="If an invalid version is submitted then an exception should be returned.")
 
     def test_missing_coverage(self):
         """
@@ -138,7 +141,7 @@ class TestGetCoverage(TestWCSSpecification):
             params['TIME'] = self.time_position
         response = self.query_server(params)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('ServiceException'))
+        self.assertTrue(soup.find('ServiceException'), msg="If coverage is omitted, an exception should be returned.")
 
     def test_valid_coverage(self):
         """
@@ -161,7 +164,10 @@ class TestGetCoverage(TestWCSSpecification):
             params['TIME'] = self.time_position
 
         response = self.query_server(params)
-        self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
+        self.assertTrue(
+            response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER,
+            msg="A valid coverage request should have the correct headers as defined in the user settings of this test suite."
+        )
 
     def test_invalid_coverage(self):
         """
@@ -203,7 +209,9 @@ class TestGetCoverage(TestWCSSpecification):
             params['TIME'] = self.time_position
         response = self.query_server(params)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('ServiceException'))
+        self.assertTrue(
+            soup.find('ServiceException'),
+            msg="If an invalid coverage input is requested, an exception should be returned.")
 
     def test_missing_crs(self):
         """
@@ -242,7 +250,7 @@ class TestGetCoverage(TestWCSSpecification):
             params['TIME'] = self.time_position
         response = self.query_server(params)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('ServiceException'))
+        self.assertTrue(soup.find('ServiceException'), msg="If CRS is omitted, an exception should be returned.")
 
     def test_unsupported_crs(self):
         """
@@ -285,7 +293,8 @@ class TestGetCoverage(TestWCSSpecification):
             params['TIME'] = self.time_position
         response = self.query_server(params)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('ServiceException'))
+        self.assertTrue(
+            soup.find('ServiceException'), msg="If an unsupported CRS is requested, an exception should be returned.")
 
     def test_valid_response_crs(self):
         """
@@ -328,7 +337,10 @@ class TestGetCoverage(TestWCSSpecification):
             params['TIME'] = self.time_position
 
         response = self.query_server(params)
-        self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
+        self.assertTrue(
+            response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER,
+            msg="A valid CRS request shoud have the correct response content type as defined by the user inputs of this test suite."
+        )
 
     def test_invalid_response_crs(self):
         """
@@ -371,7 +383,9 @@ class TestGetCoverage(TestWCSSpecification):
             params['TIME'] = self.time_position
         response = self.query_server(params)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('ServiceException'))
+        self.assertTrue(
+            soup.find('ServiceException'),
+            msg="If an invalid response CRS is requested an exception should be returned.")
 
     def test_bbox_subset(self):
         """
@@ -395,7 +409,10 @@ class TestGetCoverage(TestWCSSpecification):
             params['TIME'] = self.time_position
 
         response = self.query_server(params)
-        self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
+        self.assertTrue(
+            response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER,
+            msg="Valid BBOX subset responses should have the correct response content type as defined by this test suite"
+        )
 
     def test_invalid_bbox(self):
         """
@@ -440,7 +457,7 @@ class TestGetCoverage(TestWCSSpecification):
             params['TIME'] = self.time_position
         response = self.query_server(params)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('ServiceException'))
+        self.assertTrue(soup.find('ServiceException'), msg="Invalid BBOX requests should return an exception.")
 
     def test_missing_bbox_time(self):
         """
@@ -478,7 +495,8 @@ class TestGetCoverage(TestWCSSpecification):
 
         response = self.query_server(params)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('ServiceException'))
+        self.assertTrue(
+            soup.find('ServiceException'), msg="If BBOX and TIME are both omitted, an exception should be returned.")
 
     def test_time_position(self):
         """
@@ -520,7 +538,10 @@ class TestGetCoverage(TestWCSSpecification):
         if self.time_position:
             params['TIME'] = self.time_position
             response = self.query_server(params)
-            self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
+            self.assertTrue(
+                response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER,
+                msg="If a valid time position is submitted, the response should have the correct response content type as defined by this test suite."
+            )
 
     def test_invalid_time(self):
         """
@@ -563,7 +584,8 @@ class TestGetCoverage(TestWCSSpecification):
             params['TIME'] = "asdfasdfasfasdf"
             response = self.query_server(params)
             soup = BeautifulSoup(response.text, 'xml')
-            self.assertTrue(soup.find('ServiceException'))
+            self.assertTrue(
+                soup.find('ServiceException'), msg="If an invalid time is submitted an exception should be returned.")
 
     def test_invalid_parameter_value(self):
         """
@@ -610,7 +632,9 @@ class TestGetCoverage(TestWCSSpecification):
             params[self.parameter] = "asdfasdfasdf"
             response = self.query_server(params)
             soup = BeautifulSoup(response.text, 'xml')
-            self.assertTrue(soup.find('ServiceException'))
+            self.assertTrue(
+                soup.find('ServiceException'),
+                msg="If an invalid parameter value is submitted, an exception should be returned.")
 
     def test_correct_parameter(self):
         """
@@ -656,7 +680,10 @@ class TestGetCoverage(TestWCSSpecification):
         if self.parameter:
             params[self.parameter] = self.parameter_value
             response = self.query_server(params)
-            self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
+            self.assertTrue(
+                response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER,
+                msg="If a correct parameter is submitted, the response should have the correct content-type as defined by this test suite."
+            )
 
     def test_missing_grid_size(self):
         """
@@ -695,7 +722,8 @@ class TestGetCoverage(TestWCSSpecification):
             params['TIME'] = self.time_position
         response = self.query_server(params)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('ServiceException'))
+        self.assertTrue(
+            soup.find('ServiceException'), msg="If grid sizing inputs are missing, an exception should be returned.")
 
     def test_grid_resolution(self):
         """
@@ -738,7 +766,9 @@ class TestGetCoverage(TestWCSSpecification):
             params['TIME'] = self.time_position
 
         response = self.query_server(params)
-        self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
+        self.assertTrue(
+            response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER,
+            msg="A request with a valid grid resolution should return a response with the correct content-type.")
 
     def test_invalid_format(self):
         """
@@ -782,7 +812,9 @@ class TestGetCoverage(TestWCSSpecification):
             params['TIME'] = self.time_position
         response = self.query_server(params)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('ServiceException'))
+        self.assertTrue(
+            soup.find('ServiceException'),
+            msg="If an invalid format type is requested, an exception should be returned.")
 
     def test_missing_format(self):
         """
@@ -823,7 +855,7 @@ class TestGetCoverage(TestWCSSpecification):
             params['TIME'] = self.time_position
         response = self.query_server(params)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('ServiceException'))
+        self.assertTrue(soup.find('ServiceException'), msg="If format is missing, an exception should be returned.")
 
     # section 9.2.2.13 Exception doesn't make much sense... skipping
 
@@ -854,7 +886,9 @@ class TestGetCoverage(TestWCSSpecification):
             params['TIME'] = self.time_position
 
         response = self.query_server(params)
-        self.assertTrue(response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER)
+        self.assertTrue(
+            response.headers['content-type'] == self.VAR_WCS_FORMAT_1_HEADER,
+            msg="If a valid interpolation is submitted, the response should have the correct content-type.")
 
     def test_invalid_interpolation(self):
         """
@@ -884,4 +918,6 @@ class TestGetCoverage(TestWCSSpecification):
 
         response = self.query_server(params)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('ServiceException'))
+        self.assertTrue(
+            soup.find('ServiceException'),
+            msg="If an invalid interpolation is submitted, an exception should be returned.")
