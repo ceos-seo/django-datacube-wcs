@@ -22,12 +22,15 @@ class TestWCSSpecification(unittest.TestCase):
 
     """
 
-    BASE_WCS_URL = "http://192.168.100.14:8000/web_service"
+    # BASE_WCS_URL = "http://192.168.100.14/web_service"
+    BASE_WCS_URL = "http://demo.mapserver.org/cgi-bin/wcs"
 
     VAR_HIGH_UPDATESEQUENCE = 1
     VAR_LOW_UPDATESEQUENCE = -1
-    VAR_WCS_COVERAGE_1_RESX = 0.00027
-    VAR_WCS_COVERAGE_1_RESY = -0.00027
+    # VAR_WCS_COVERAGE_1_RESX = 0.00027
+    # VAR_WCS_COVERAGE_1_RESY = -0.00027
+    VAR_WCS_COVERAGE_1_RESX = 0.1
+    VAR_WCS_COVERAGE_1_RESY = -0.1
     VAR_WCS_COVERAGE_1_WIDTH = 100
     VAR_WCS_COVERAGE_1_HEIGHT = 100
     VAR_WCS_COVERAGE_1_FORMAT = "GeoTIFF"
@@ -51,6 +54,7 @@ class TestWCSSpecification(unittest.TestCase):
         params = {'ReQuEsT': "DescribeCoverage", 'SeRvIcE': "WCS", 'Version': "1.0.0", "COVERAGE": self.name}
         response = self.query_server(params)
         soup = BeautifulSoup(response.text, 'xml')
+
         position_container = soup.find('gml:Envelope').find_all('gml:pos') if soup.find('gml:Envelope') else soup.find(
             'gml:EnvelopeWithTimePeriod').find_all('gml:pos')
         # format of (x, y), (x, y)
@@ -64,11 +68,16 @@ class TestWCSSpecification(unittest.TestCase):
         subset_bbox[3] = subset_bbox[1] + ((subset_bbox[3] - subset_bbox[1]) / 10)
         self.subset_bbox = "{},{},{},{}".format(subset_bbox[0], subset_bbox[1], subset_bbox[2], subset_bbox[3])
 
-        self.request_response_crs = soup.find('requestResponseCRSs').text if soup.find('requestResponseCRSs') else None
-        self.request_crs = soup.find('requestCRSs').text if soup.find('requestCRSs') else self.request_response_crs
-        self.response_crs = soup.find('responseCRSs').text if soup.find('responseCRSs') else self.request_response_crs
+        try:
+            # we can't rely on the srs of the envelope as it isn't required - try catch.
+            self.request_crs = soup.find('gml:Envelope').attrs['srsName'] if soup.find('gml:Envelope') else soup.find(
+                'gml:EnvelopeWithTimePeriod').attrs['srsName']
+        except:
+            self.request_crs = soup.find('requestResponseCRSs').text if soup.find('requestResponseCRSs') else soup.find(
+                'requestCRSs').text
+        self.response_crs = soup.find('responseCRSs').text if soup.find('responseCRSs') else self.request_crs
 
-        self.request_format = self.VAR_WCS_COVERAGE_1_FORMAT
+        self.request_format = soup.find('formats').text
         coverage_offering = soup.find('CoverageOffering')
         if coverage_offering.find('timePosition'):
             self.time_position = coverage_offering.find('timePosition')

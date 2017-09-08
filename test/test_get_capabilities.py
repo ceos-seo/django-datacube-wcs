@@ -188,9 +188,7 @@ class TestGetCapabilities(TestWCSSpecification):
         }
         response = self.query_server(params_72)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(
-            soup.find('WCS_Capabilities') and soup.find('Service') and not soup.find('Capability') and
-            not soup.find('ContentMetadata'))
+        self.assertTrue(soup.find('Service') and not soup.find('Capability') and not soup.find('ContentMetadata'))
 
     def test_section_capability_parameter(self):
         """
@@ -207,9 +205,7 @@ class TestGetCapabilities(TestWCSSpecification):
         }
         response = self.query_server(params_72)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(
-            soup.find('WCS_Capabilities') and soup.find('Capability') and not soup.find('ContentMetadata') and
-            not soup.find('Service'))
+        self.assertTrue(soup.find('Capability') and not soup.find('ContentMetadata') and not soup.find('Service'))
 
     def test_section_content_metadata_parameter(self):
         """
@@ -226,9 +222,7 @@ class TestGetCapabilities(TestWCSSpecification):
         }
         response = self.query_server(params_72)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(
-            soup.find('WCS_Capabilities') and not soup.find('Capability') and soup.find('ContentMetadata') and
-            not soup.find('Service'))
+        self.assertTrue(not soup.find('Capability') and soup.find('ContentMetadata') and not soup.find('Service'))
 
     def test_get_capabilities_updatesequence(self):
         """The response to a GetCapabilities has an increased UpdateSequence value after the update service content.

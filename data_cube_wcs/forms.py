@@ -1,7 +1,6 @@
 from django import forms
 
 from dateutil import parser
-from collections import OrderedDict
 
 from . import models
 from . import utils
@@ -14,7 +13,8 @@ exception_codes = [
 AVAILABLE_INPUT_CRS = ["EPSG:4326"]
 AVAILABLE_OUTPUT_CRS = ["EPSG:4326"]
 NATIVE_CRS = ["EPSG:4326"]
-AVAILABLE_FORMATS = OrderedDict({'GeoTIFF': 'image/tiff', 'netCDF': 'application/x-netcdf'})
+ORDERED_FORMATS = ('GeoTIFF', 'netCDF')
+AVAILABLE_FORMATS = {'GeoTIFF': 'image/tiff', 'netCDF': 'application/x-netcdf'}
 INTERPOLATION_OPTIONS = {'nearest neighbor': 'nearest', 'bilinear': 'bilinear', 'bicubic': 'cubic'}
 
 

@@ -148,7 +148,7 @@ class DescribeCoverage(View):
                 'available_input_crs': forms.AVAILABLE_INPUT_CRS,
                 'available_output_crs': forms.AVAILABLE_OUTPUT_CRS,
                 'interpolation_methods': forms.INTERPOLATION_OPTIONS,
-                'valid_formats': forms.AVAILABLE_FORMATS
+                'valid_formats': forms.ORDERED_FORMATS
             })
         response['Content-Type'] = 'text/xml; charset=UTF-8;'
         return response

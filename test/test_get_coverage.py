@@ -51,7 +51,7 @@ class TestGetCoverage(TestWCSSpecification):
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
-            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "CRS": self.request_crs,
             "BBOX": self.subset_bbox
         }
         if self.time_position:
@@ -92,7 +92,7 @@ class TestGetCoverage(TestWCSSpecification):
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
-            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "CRS": self.request_crs,
             "BBOX": self.subset_bbox
         }
         if self.time_position:
@@ -131,7 +131,7 @@ class TestGetCoverage(TestWCSSpecification):
             "HEIGHT": self.VAR_WCS_COVERAGE_1_HEIGHT,
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "FORMAT": self.request_format,
-            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "CRS": self.request_crs,
             "BBOX": self.subset_bbox
         }
         if self.time_position:
@@ -154,7 +154,7 @@ class TestGetCoverage(TestWCSSpecification):
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
-            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "CRS": self.request_crs,
             "BBOX": self.subset_bbox
         }
         if self.time_position:
@@ -196,7 +196,7 @@ class TestGetCoverage(TestWCSSpecification):
             "HEIGHT": self.VAR_WCS_COVERAGE_1_HEIGHT,
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "FORMAT": self.request_format,
-            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "CRS": self.request_crs,
             "BBOX": self.subset_bbox
         }
         if self.time_position:
@@ -320,7 +320,7 @@ class TestGetCoverage(TestWCSSpecification):
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
-            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "CRS": self.request_crs,
             "RESPONSE_CRS": self.response_crs if self.response_crs else self.request_response_crs,
             "BBOX": self.subset_bbox
         }
@@ -363,7 +363,7 @@ class TestGetCoverage(TestWCSSpecification):
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
-            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "CRS": self.request_crs,
             "RESPONSE_CRS": "EPSG:5464321385",
             "BBOX": self.subset_bbox
         }
@@ -388,7 +388,7 @@ class TestGetCoverage(TestWCSSpecification):
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
-            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "CRS": self.request_crs,
             "BBOX": self.subset_bbox
         }
         if self.time_position:
@@ -433,7 +433,7 @@ class TestGetCoverage(TestWCSSpecification):
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
-            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "CRS": self.request_crs,
             "BBOX": subset_bbox
         }
         if self.time_position:
@@ -473,7 +473,7 @@ class TestGetCoverage(TestWCSSpecification):
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
-            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "CRS": self.request_crs,
         }
 
         response = self.query_server(params)
@@ -513,7 +513,7 @@ class TestGetCoverage(TestWCSSpecification):
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
-            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "CRS": self.request_crs,
             "BBOX": self.subset_bbox
         }
         # this test is only applicable if the server advertises a time position
@@ -554,7 +554,7 @@ class TestGetCoverage(TestWCSSpecification):
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
-            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "CRS": self.request_crs,
             "BBOX": self.subset_bbox
         }
         # this test is only applicable if the server advertises a time position
@@ -599,7 +599,7 @@ class TestGetCoverage(TestWCSSpecification):
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
-            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "CRS": self.request_crs,
             "BBOX": self.subset_bbox
         }
         # this test is only applicable if the server advertises a time position
@@ -646,7 +646,7 @@ class TestGetCoverage(TestWCSSpecification):
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
-            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "CRS": self.request_crs,
             "BBOX": self.subset_bbox
         }
         # this test is only applicable if the server advertises a time position
@@ -686,7 +686,7 @@ class TestGetCoverage(TestWCSSpecification):
             'version': "1.0.0",
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
-            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "CRS": self.request_crs,
             "BBOX": self.subset_bbox
         }
         # this test is only applicable if the server advertises a time position
@@ -729,7 +729,7 @@ class TestGetCoverage(TestWCSSpecification):
             "RESY": self.VAR_WCS_COVERAGE_1_RESY,
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
-            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "CRS": self.request_crs,
             "BBOX": self.subset_bbox
         }
         # this test is only applicable if the server advertises a time position
@@ -773,7 +773,7 @@ class TestGetCoverage(TestWCSSpecification):
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "COVERAGE": self.name,
             "FORMAT": "asdfasdfasdf",
-            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "CRS": self.request_crs,
             "BBOX": self.subset_bbox
         }
         # this test is only applicable if the server advertises a time position
@@ -814,7 +814,7 @@ class TestGetCoverage(TestWCSSpecification):
             "HEIGHT": self.VAR_WCS_COVERAGE_1_HEIGHT,
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "COVERAGE": self.name,
-            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "CRS": self.request_crs,
             "BBOX": self.subset_bbox
         }
         # this test is only applicable if the server advertises a time position
@@ -844,7 +844,7 @@ class TestGetCoverage(TestWCSSpecification):
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
-            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "CRS": self.request_crs,
             "BBOX": self.subset_bbox,
             'INTERPOLATION': self.interpolations[0]
         }
@@ -873,7 +873,7 @@ class TestGetCoverage(TestWCSSpecification):
             "WIDTH": self.VAR_WCS_COVERAGE_1_WIDTH,
             "COVERAGE": self.name,
             "FORMAT": self.request_format,
-            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs,
+            "CRS": self.request_crs,
             "BBOX": self.subset_bbox,
             'INTERPOLATION': "asdfasdfasdf"
         }

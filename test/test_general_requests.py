@@ -224,7 +224,7 @@ class TestGeneralRequests(TestWCSSpecification):
             "COVERAGE": soup.find('CoverageOffering').find('name').text,
             "TIME": self.time_position,
             "FORMAT": self.request_format,
-            "CRS": self.request_response_crs if self.request_response_crs else self.request_crs
+            "CRS": self.request_crs
         }
 
         response = self.query_server(params_63)
