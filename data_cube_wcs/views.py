@@ -144,9 +144,9 @@ class DescribeCoverage(View):
             'DescribeCoverage.xml',
             context={
                 'coverage_offerings': coverages,
-                'native_crs': forms.NATIVE_CRS,
                 'available_input_crs': forms.AVAILABLE_INPUT_CRS,
                 'available_output_crs': forms.AVAILABLE_OUTPUT_CRS,
+                'available_input_output_crs': forms.AVAILABLE_INPUT_OUTPUT_CRS,
                 'interpolation_methods': forms.INTERPOLATION_OPTIONS,
                 'valid_formats': forms.ORDERED_FORMATS
             })

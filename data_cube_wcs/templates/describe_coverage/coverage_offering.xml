@@ -41,7 +41,12 @@
     </RangeSet>
   </rangeSet>
   <supportedCRSs>
-    <requestResponseCRSs>EPSG:4326</requestResponseCRSs>
+    {% for crs in available_input_output_crs %}
+      {% if crs != coverage_offering.crs %}
+        <requestResponseCRSs>{{ crs }}</requestResponseCRSs>
+      {% endif %}
+    {% endfor %}
+    <requestResponseCRSs>{{ coverage_offering.crs }}</requestResponseCRSs>
     {% for crs in available_input_crs %}
       <requestCRSs>{{ crs }}</requestCRSs>
     {% endfor %}
