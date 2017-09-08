@@ -19,6 +19,7 @@ class CoverageOffering(models.Model):
     end_time = models.DateTimeField()
 
     crs = models.CharField(max_length=50)
+    available_formats = models.ManyToManyField('Format', null=True, blank=True)
 
     offer_temporal = models.BooleanField(default=True)
 
@@ -94,7 +95,10 @@ class CoverageOffering(models.Model):
 
             for model in list_of_dicts:
                 try:
-                    cls(**model).save()
+                    new_model = cls(**model)
+                    model.save()
+                    model.available_formats = Format.objects.filter(name="GeoTIFF")
+                    model.save()
                 except IntegrityError:
                     cls.objects.filter(name=model['name']).update(**model)
 
@@ -157,3 +161,13 @@ class CoverageRangesetEntry(models.Model):
     coverage_offering = models.ForeignKey(CoverageOffering, on_delete=models.CASCADE)
     band_name = models.CharField(max_length=50)
     null_value = models.FloatField(default=-9999)
+
+
+class Format(models.Model):
+    """Contains a format and the content-type headers for a GetCoverage response"""
+
+    name = models.CharField(max_length=50)
+    content_type = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name

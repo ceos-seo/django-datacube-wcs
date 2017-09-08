@@ -15,7 +15,7 @@ exception_codes = [
 AVAILABLE_INPUT_CRS = []
 AVAILABLE_OUTPUT_CRS = []
 AVAILABLE_INPUT_OUTPUT_CRS = ["EPSG:4326"]
-ORDERED_FORMATS = ('GeoTIFF',)
+ORDERED_FORMATS = ('GeoTIFF', 'RGB_GeoTIFF')
 AVAILABLE_FORMATS = {'GeoTIFF': 'image/tiff', 'netCDF': 'application/x-netcdf'}
 INTERPOLATION_OPTIONS = {'nearest neighbor': 'nearest', 'bilinear': 'bilinear', 'bicubic': 'cubic'}
 

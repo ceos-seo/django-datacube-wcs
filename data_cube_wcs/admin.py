@@ -14,3 +14,4 @@ class CoverageRangesetAdmin(admin.ModelAdmin):
 
 admin.site.register(models.CoverageOffering, CoverageOfferingAdmin)
 admin.site.register(models.CoverageRangesetEntry, CoverageRangesetAdmin)
+admin.site.register(models.Format)

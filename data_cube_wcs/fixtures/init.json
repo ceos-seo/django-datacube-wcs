@@ -1,0 +1,1 @@
+[{"model": "data_cube_wcs.format", "pk": 1, "fields": {"name": "GeoTIFF", "content_type": "image/tiff"}}]
