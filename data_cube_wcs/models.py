@@ -22,6 +22,9 @@ class CoverageOffering(models.Model):
 
     offer_temporal = models.BooleanField(default=True)
 
+    def __str__(self):
+        return self.name
+
     def get_min_point(self):
         """Get a lon lat point as per the gml:pos requirement"""
         return "{} {}".format(self.min_longitude, self.min_latitude)
