@@ -15,7 +15,7 @@ exception_codes = [
 AVAILABLE_INPUT_CRS = []
 AVAILABLE_OUTPUT_CRS = []
 AVAILABLE_INPUT_OUTPUT_CRS = ["EPSG:4326"]
-ORDERED_FORMATS = ('GeoTIFF')
+ORDERED_FORMATS = ('GeoTIFF',)
 AVAILABLE_FORMATS = {'GeoTIFF': 'image/tiff', 'netCDF': 'application/x-netcdf'}
 INTERPOLATION_OPTIONS = {'nearest neighbor': 'nearest', 'bilinear': 'bilinear', 'bicubic': 'cubic'}
 
@@ -59,9 +59,9 @@ class GetCoverageForm(BaseRequestForm):
     """GetCoverage request form as defined by the OGC WCS 1.0 specification"""
     coverage = forms.ModelChoiceField(queryset=models.CoverageOffering.objects.all(), to_field_name="name")
 
-    crs = forms.ChoiceField(choices=((option, option) for option in AVAILABLE_INPUT_CRS), initial="EPSG:4326")
+    crs = forms.ChoiceField(choices=((option, option) for option in AVAILABLE_INPUT_OUTPUT_CRS), initial="EPSG:4326")
     response_crs = forms.ChoiceField(
-        required=False, choices=((option, option) for option in AVAILABLE_OUTPUT_CRS), initial="EPSG:4326")
+        required=False, choices=((option, option) for option in AVAILABLE_INPUT_OUTPUT_CRS), initial="EPSG:4326")
 
     # One of the following is required.
     bbox = forms.CharField(required=False)
