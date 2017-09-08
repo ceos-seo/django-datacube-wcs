@@ -147,8 +147,7 @@ class DescribeCoverage(View):
                 'available_input_crs': forms.AVAILABLE_INPUT_CRS,
                 'available_output_crs': forms.AVAILABLE_OUTPUT_CRS,
                 'available_input_output_crs': forms.AVAILABLE_INPUT_OUTPUT_CRS,
-                'interpolation_methods': forms.INTERPOLATION_OPTIONS,
-                'valid_formats': forms.ORDERED_FORMATS
+                'interpolation_methods': forms.INTERPOLATION_OPTIONS
             })
         response['Content-Type'] = 'text/xml; charset=UTF-8;'
         return response
@@ -224,9 +223,8 @@ class GetCoverage(View):
         dc_parameters, individual_dates, date_ranges = utils.form_to_data_cube_parameters(coverage_data)
 
         dataset = utils.get_stacked_dataset(dc_parameters, individual_dates, date_ranges)
-
-        response_mapping = {'GeoTIFF': utils.get_tiff_response, 'netCDF': utils.get_netcdf_response}
+        _format = coverage_data.cleaned_data['format']
         return HttpResponse(
-            response_mapping[coverage_data.cleaned_data['format'].name](coverage_data.cleaned_data['coverage'], dataset,
-                                                                        coverage_data.cleaned_data['response_crs']),
-            content_type=coverage_data.cleaned_data['format'].content_type)
+            _format.get_http_response(coverage_data.cleaned_data['coverage'], dataset,
+                                      coverage_data.cleaned_data['response_crs']),
+            content_type=_format.content_type)

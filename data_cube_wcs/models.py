@@ -61,6 +61,10 @@ class CoverageOffering(models.Model):
         """Get a list of nodata values for the coverage"""
         return self.get_rangeset().values_list('null_value', flat=True)
 
+    def get_available_formats(self):
+        """Get all the formats, ordered by pk. GeoTIFF must be first, hence the ordering."""
+        return self.available_formats.all().order_by('pk')
+
     @classmethod
     def update_or_create_coverages(cls, update_aux=False):
         """Uses the Data Cube data access api to update database representations of coverages"""
@@ -171,3 +175,48 @@ class Format(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_http_response(self, coverage_offering, dataset, crs):
+        """Get the binary/bytes-like http response. Defaults to GeoTIFF
+
+        Acts as a passthrough to the proper output formatting func based on self.name
+
+        Args:
+            coverage_offering: CoverageOffering model
+            dataset: dataset to write to the output
+            crs: dataset crs
+
+        Returns:
+            Http formatted bytes-like response
+
+        """
+        response_mapping = {
+            'GeoTIFF': utils.get_tiff_response,
+            'RGB_GeoTIFF': utils.get_tiff_response,
+            'netCDF': utils.get_netcdf_response
+        }
+        return response_mapping.get(self.name, utils.get_tiff_response)(
+            coverage_offering, self.process_dataset(coverage_offering, dataset), crs)
+
+    def process_dataset(self, coverage_offering, dataset):
+        """Apply any preprocessing affiliated with the format type here
+
+        Examples include rgb -> drop all non rgb vars and order the remaining as rgb
+        filter -> filter out clouds/etc. and drop all qa bands
+
+        Based on coverage offering name - e.g. different behaviors for landsat/s1/etc.
+        and on self.name
+
+        """
+        """processing_map = {
+            'RGB_GeoTIFF': {
+                'landsat': x,
+                's1_gamma': y,
+                'alos': z,
+            },
+            'Filtered_GeoTIFF': {
+                'landsat': x
+            }
+        }"""
+
+        return processing_map.get(self.name, lambda d: d)(dataset)

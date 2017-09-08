@@ -56,7 +56,7 @@
     <nativeCRSs>{{ coverage_offering.crs }}</nativeCRSs>
   </supportedCRSs>
   <supportedFormats nativeFormat="GeoTIFF">
-    {% for format in coverage_offering.available_formats.all %}
+    {% for format in coverage_offering.get_available_formats %}
       <formats>{{ format.name }}</formats>
     {% endfor %}
   </supportedFormats>

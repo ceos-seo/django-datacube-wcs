@@ -22,7 +22,7 @@ class TestWCSSpecification(unittest.TestCase):
 
     """
 
-    BASE_WCS_URL = "http://192.168.100.14/web_service"
+    BASE_WCS_URL = "http://192.168.100.14:8000/web_service"
     # BASE_WCS_URL = "http://demo.mapserver.org/cgi-bin/wcs"
 
     VAR_HIGH_UPDATESEQUENCE = 1
