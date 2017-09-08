@@ -32,7 +32,9 @@ class TestGetCapabilities(TestWCSSpecification):
         params_72 = {'VERSION': "1.0.0", 'SERVICE': "WCS", 'REQUEST': "GetCapabilities", "UPDATESEQUENCE": "0"}
         response = self.query_server(params_72)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('ServiceException').attrs['code'] == "CurrentUpdateSequence")
+        self.assertTrue(
+            soup.find('ServiceException').attrs['code'] == "CurrentUpdateSequence",
+            msg="The server should return a service exception with the specified code.")
 
     def test_current_updatesequence(self):
         """
@@ -53,7 +55,9 @@ class TestGetCapabilities(TestWCSSpecification):
         params_72 = {'VERSION': "1.0.0", 'SERVICE': "WCS", 'REQUEST': "GetCapabilities", "UPDATESEQUENCE": "0"}
         response = self.query_server(params_72)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('ServiceException').attrs['code'] == "CurrentUpdateSequence")
+        self.assertTrue(
+            soup.find('ServiceException').attrs['code'] == "CurrentUpdateSequence",
+            msg="The server should return a service exception with the specified code.")
 
     def test_lower_updatesequence(self):
         """
@@ -79,7 +83,7 @@ class TestGetCapabilities(TestWCSSpecification):
         }
         response = self.query_server(params_72)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('WCS_Capabilities'))
+        self.assertTrue(soup.find('WCS_Capabilities'), msg="Lower update sequences should be permitted.")
 
     def test_higher_updatesequence(self):
         """
@@ -105,7 +109,9 @@ class TestGetCapabilities(TestWCSSpecification):
         }
         response = self.query_server(params_72)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('ServiceException').attrs['code'] == "InvalidUpdateSequence")
+        self.assertTrue(
+            soup.find('ServiceException').attrs['code'] == "InvalidUpdateSequence",
+            msg="The server should return a service exception with the specified code.")
 
     def test_no_request_updatesequence(self):
         """
@@ -129,7 +135,7 @@ class TestGetCapabilities(TestWCSSpecification):
         }
         response = self.query_server(params_72)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('WCS_Capabilities'))
+        self.assertTrue(soup.find('WCS_Capabilities'), msg="The update sequence should not be a required parameter.")
 
     def test_no_section_parameter(self):
         """
@@ -149,7 +155,8 @@ class TestGetCapabilities(TestWCSSpecification):
         soup = BeautifulSoup(response.text, 'xml')
         self.assertTrue(
             soup.find('WCS_Capabilities') and soup.find('Capability') and soup.find('ContentMetadata') and
-            soup.find('Service'))
+            soup.find('Service'),
+            msg="Requests without the section parameter should return all sections.")
 
     def test_slash_section_parameter(self):
         """
@@ -171,7 +178,8 @@ class TestGetCapabilities(TestWCSSpecification):
         soup = BeautifulSoup(response.text, 'xml')
         self.assertTrue(
             soup.find('WCS_Capabilities') and soup.find('Capability') and soup.find('ContentMetadata') and
-            soup.find('Service'))
+            soup.find('Service'),
+            msg="Requests with a slash for the section should return all sections.")
 
     def test_section_service_parameter(self):
         """
@@ -188,7 +196,9 @@ class TestGetCapabilities(TestWCSSpecification):
         }
         response = self.query_server(params_72)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('Service') and not soup.find('Capability') and not soup.find('ContentMetadata'))
+        self.assertTrue(
+            soup.find('Service') and not soup.find('Capability') and not soup.find('ContentMetadata'),
+            msg="Requests with a section should return the requested section.")
 
     def test_section_capability_parameter(self):
         """
@@ -205,7 +215,9 @@ class TestGetCapabilities(TestWCSSpecification):
         }
         response = self.query_server(params_72)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(soup.find('Capability') and not soup.find('ContentMetadata') and not soup.find('Service'))
+        self.assertTrue(
+            soup.find('Capability') and not soup.find('ContentMetadata') and not soup.find('Service'),
+            msg="Requests with a section should return the requested section.")
 
     def test_section_content_metadata_parameter(self):
         """
@@ -222,7 +234,9 @@ class TestGetCapabilities(TestWCSSpecification):
         }
         response = self.query_server(params_72)
         soup = BeautifulSoup(response.text, 'xml')
-        self.assertTrue(not soup.find('Capability') and soup.find('ContentMetadata') and not soup.find('Service'))
+        self.assertTrue(
+            not soup.find('Capability') and soup.find('ContentMetadata') and not soup.find('Service'),
+            msg="Requests with a section should return the requested section.")
 
     def test_get_capabilities_updatesequence(self):
         """The response to a GetCapabilities has an increased UpdateSequence value after the update service content.
@@ -249,4 +263,6 @@ class TestGetCapabilities(TestWCSSpecification):
         response = self.query_server(params_73)
         soup = BeautifulSoup(response.text, 'xml')
         for entry in soup.find_all('OnlineResource'):
-            self.assertTrue(entry.attrs['xlink:href'].endswith("?") and self.BASE_WCS_URL in entry.attrs['xlink:href'])
+            self.assertTrue(
+                entry.attrs['xlink:href'].endswith("?") and self.BASE_WCS_URL in entry.attrs['xlink:href'],
+                msg="All returned GetCapabilities urls should be valid urls ending with a ?.")
