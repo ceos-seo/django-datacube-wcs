@@ -68,7 +68,8 @@ def get_stacked_dataset(parameters, individual_dates, date_ranges):
             data = data.apply(
                 lambda ds: ds.where(ds != ds.nodata).mean('time', skipna=True).fillna(ds.nodata), keep_attrs=True)
         _clear_attrs(data)
-        data = data.isel(time=0, drop=True)
+        if 'time' in data:
+            data = data.isel(time=0, drop=True)
 
     # if there isn't any data, we can assume that there was no data for the acquisition
     if data is None:
@@ -95,7 +96,7 @@ def get_datacube_metadata(dc, product):
         return {
             'lat_extents': (0, 0),
             'lon_extents': (0, 0),
-            'time_extents': (date(2000, 1, 1), date(2000, 1, 1)),
+            'time_extents': (datetime(2000, 1, 1), datetime(2000, 1, 1)),
             'scene_count': 0,
             'pixel_count': 0,
             'tile_count': 0,
