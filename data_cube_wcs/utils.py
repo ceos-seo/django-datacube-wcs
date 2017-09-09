@@ -42,7 +42,7 @@ def get_stacked_dataset(parameters, individual_dates, date_ranges):
     """
 
     def _get_datetime_range_containing(*time_ranges):
-        return (min(time_ranges) - timedelta(microseconds=1), max(time_ranges) + timedelta(microseconds=1))
+        return (min(time_ranges) - timedelta(seconds=1), max(time_ranges) + timedelta(seconds=1))
 
     def _clear_attrs(dataset):
         """Clear out all attributes on an xarray dataset to write to disk."""
@@ -146,16 +146,16 @@ def get_tiff_response(coverage_offering, dataset, crs):
     """Uses rasterio MemoryFiles in order to return a streamable GeoTiff response"""
 
     supported_dtype_map = {
-        'uint32': 4,
-        'complex': 9,
-        'float64': 7,
-        'complex128': 11,
-        'float32': 6,
-        'complex64': 10,
-        'int32': 5,
-        'uint16': 2,
         'uint8': 1,
-        'int16': 3
+        'uint16': 2,
+        'int16': 3,
+        'uint32': 4,
+        'int32': 5,
+        'float32': 6,
+        'float64': 7,
+        'complex': 9,
+        'complex64': 10,
+        'complex128': 11,
     }
 
     dtype_list = [dataset[array].dtype for array in dataset.data_vars]
