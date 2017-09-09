@@ -211,8 +211,8 @@ class Format(models.Model):
         """
 
         def abs_divide(ds, bands):
-            ds['division'] = abs(ds[bands[0]] / ds[bands[1]])
-            return ds
+            ds["_".join(bands)] = abs(ds[bands[0]] / ds[bands[1]])
+            return ds[[*bands, "_".join(bands)]]
 
         # this is pretty much all bad
         processing_map = {
