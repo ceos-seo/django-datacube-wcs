@@ -69,3 +69,15 @@ You can replace the IP address with the address of your server. Additionally, yo
 
 ![QGIS Usage](docs/media/qgis.png)
 ![QGIS Usage](docs/media/qgis2.png)
+
+
+Adding New Formats
+------------
+
+You can add some server processed output formats to the WCS server fairly simply.
+
+1. Create a Format model from the Django admin panel. Include a descriptive name and the response headers (image/tiff)
+
+2. Add the model to whatever products you would like it accessible from the Django admin panel. For each product, select the additional product and then save the model.
+
+3.  For each product, handle the formatting operation models.py -> Format.process_dataset. There are some examples there of formatting standard RGB or filtered mosaics. 
