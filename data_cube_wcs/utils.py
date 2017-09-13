@@ -67,8 +67,11 @@ def get_stacked_dataset(coverage_offering, parameters, individual_dates, date_ra
         combined_data = xr.concat(data_array, 'time')
         data = combined_data.reindex({'time': sorted(combined_data.time.values)})
         if data.dims['time'] > 1:
-            data = data.apply(
-                lambda ds: ds.where(ds != ds.nodata).mean('time', skipna=True).fillna(ds.nodata), keep_attrs=True)
+            nodata_vals = [
+                rangeset.get(band_name=band).null_value if rangeset.filter(band_name=band).exists() else 0
+                for band in data.data_vars
+            ]
+            data = data.pipe(create_mosaic, no_data=nodata_vals)
         _clear_attrs(data)
         if 'time' in data:
             data = data.isel(time=0, drop=True)
@@ -89,6 +92,7 @@ def get_stacked_dataset(coverage_offering, parameters, individual_dates, date_ra
                 longitude_range[0],
                 longitude_range[1],
                 num=abs((longitude_range[1] - longitude_range[0]) / parameters['resolution'][1]))
+
             data = xr.Dataset(
                 {
                     band: (('latitude', 'longitude'), np.full(
@@ -100,6 +104,24 @@ def get_stacked_dataset(coverage_offering, parameters, individual_dates, date_ra
                         'longitude': longitude}).astype('int16')
 
     return data
+
+
+def create_mosaic(dataset_in, no_data=[]):
+    """Return a mosaic of the most recent pixel"""
+
+    dataset_in = dataset_in.copy(deep=True)
+    dataset_out = None
+    time_slices = reversed(range(len(dataset_in.time)))
+    for index in time_slices:
+        dataset_slice = dataset_in.isel(time=index).drop('time')
+        if dataset_out is None:
+            dataset_out = dataset_slice.copy(deep=True)
+        else:
+            for idx, key in enumerate(dataset_in.data_vars):
+                dataset_out[key].values[dataset_out[key].values == no_data[idx]] = dataset_slice[key].values[
+                    dataset_out[key].values == no_data[idx]]
+
+    return dataset_out
 
 
 def create_bit_mask(data_array, valid_bits, no_data=-9999):
