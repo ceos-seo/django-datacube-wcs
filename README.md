@@ -2,7 +2,7 @@
 Django Data Cube WCS
 ======================
 
-A(n) (mostly) OGC compliant WCS server for a Data Cube instance. This app uses an existing Data Cube installation and allows external toolsets to use the data using a WCS connection. Models are automatically generated for Data Cube products using the Data Cube API and all data is managed automatically. Range subsetting is enabled via the GET parameter 'measurements'. As of the current version, only GET/KVP is supported - POST and XML encoding is left out for simplicities sake.
+A(n) (mostly) OGC compliant WCS server for a Data Cube instance. This app uses an existing Data Cube installation and allows external toolsets to use the data using a WCS connection. Models are automatically generated for Data Cube products using the Data Cube API and all data is managed automatically. Range subsetting is enabled via the GET parameter 'measurements'. As of the current version, only GET/KVP is supported - POST and XML encoding is left out for simplicities sake. Additionally, only a WGS84 request CRS is enabled for the time being to avoid having to handle x/y as well as latitude/longitude.
 
 More information about the specification can be found [here](http://portal.opengeospatial.org/files/05-076&passcode=97mkvnjf54t6mph0yryk) or in the docs directory of this repository. The test specification implemented is based on the published teamengine implementation found [here](https://cite.opengeospatial.org/teamengine/about/wcs/1.0.0/site/testreq.html).
 
@@ -80,4 +80,4 @@ You can add some server processed output formats to the WCS server fairly simply
 
 2. Add the model to whatever products you would like it accessible from the Django admin panel. For each product, select the additional product and then save the model.
 
-3.  For each product, handle the formatting operation models.py -> Format.process_dataset. There are some examples there of formatting standard RGB or filtered mosaics. 
+3.  For each product, handle the formatting operation models.py -> Format.process_dataset. There are some examples there of formatting standard RGB or filtered mosaics.

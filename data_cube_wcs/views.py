@@ -222,7 +222,8 @@ class GetCoverage(View):
                 return response
         dc_parameters, individual_dates, date_ranges = utils.form_to_data_cube_parameters(coverage_data)
 
-        dataset = utils.get_stacked_dataset(dc_parameters, individual_dates, date_ranges)
+        dataset = utils.get_stacked_dataset(coverage_data.cleaned_data['coverage'], dc_parameters, individual_dates,
+                                            date_ranges)
         _format = coverage_data.cleaned_data['format']
         return HttpResponse(
             _format.get_http_response(coverage_data.cleaned_data['coverage'], dataset,

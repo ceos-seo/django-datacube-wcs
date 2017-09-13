@@ -28,7 +28,7 @@ def form_to_data_cube_parameters(form_instance):
     }, individual_dates, date_ranges
 
 
-def get_stacked_dataset(parameters, individual_dates, date_ranges):
+def get_stacked_dataset(coverage_offering, parameters, individual_dates, date_ranges):
     """Get a dataset using either a list of single dates or a list of ranges
 
     Args:
@@ -49,6 +49,8 @@ def get_stacked_dataset(parameters, individual_dates, date_ranges):
         dataset.attrs = collections.OrderedDict()
         for band in dataset:
             dataset[band].attrs = collections.OrderedDict()
+
+    rangeset = apps.get_model("data_cube_wcs.CoverageRangesetEntry").objects.filter(coverage_offering=coverage_offering)
 
     full_date_ranges = [_get_datetime_range_containing(date) for date in individual_dates]
     full_date_ranges.extend(date_ranges)
@@ -75,15 +77,27 @@ def get_stacked_dataset(parameters, individual_dates, date_ranges):
     if data is None:
         with datacube.Datacube(config=config_from_settings()) as dc:
             extents = dc.load(dask_chunks={}, **parameters)
-            latitude = extents['latitude']
-            longitude = extents['longitude']
+
+            latitude_range = (parameters.get('latitude')[0], parameters.get('latitude')[1])
+            longitude_range = (parameters.get('longitude')[0], parameters.get('longitude')[1])
+
+            latitude = extents['latitude'] if 'latitude' in extents else np.linspace(
+                latitude_range[0],
+                latitude_range[1],
+                num=abs((latitude_range[1] - latitude_range[0]) / parameters['resolution'][0]))
+            longitude = extents['longitude'] if 'longitude' in extents else np.linspace(
+                longitude_range[0],
+                longitude_range[1],
+                num=abs((longitude_range[1] - longitude_range[0]) / parameters['resolution'][1]))
             data = xr.Dataset(
                 {
-                    band: (('latitude', 'longitude'), np.full((len(latitude), len(longitude)), -9999))
+                    band: (('latitude', 'longitude'), np.full(
+                        (len(latitude), len(longitude)),
+                        rangeset.get(band_name=band).null_value if rangeset.filter(band_name=band).exists() else 0))
                     for band in parameters['measurements']
                 },
-                coords={'latitude': extents['latitude'],
-                        'longitude': extents['longitude']}).astype('int16')
+                coords={'latitude': latitude,
+                        'longitude': longitude}).astype('int16')
 
     return data
 
