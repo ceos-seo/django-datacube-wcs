@@ -2,6 +2,8 @@ from django.db import models
 from django.db import IntegrityError
 import pytz
 import datacube
+import pandas as pd
+
 from . import utils
 
 
@@ -20,6 +22,17 @@ class CoverageOffering(models.Model):
 
     crs = models.CharField(max_length=50)
     available_formats = models.ManyToManyField('Format', blank=True)
+
+    origin_x_label = models.CharField(default="longitude", max_length=100)
+    origin_y_label = models.CharField(default="latitude", max_length=100)
+    origin_x = models.FloatField(default=0)
+    origin_y = models.FloatField(default=0)
+
+    grid_high_x = models.IntegerField(default=0)
+    grid_high_y = models.IntegerField(default=0)
+
+    x_resolution = models.FloatField(default=0)
+    y_resolution = models.FloatField(default=0)
 
     offer_temporal = models.BooleanField(default=True)
 
@@ -79,6 +92,34 @@ class CoverageOffering(models.Model):
                 for product in product_details['name'].values
             }
 
+            grid_information = []
+            for product in extent_data:
+                data = dc.load(product, dask_chunks={})
+                axis_labels = product_details[product_details['name'] == product]['spatial_dimensions'].values[0]
+                labels = {
+                    'grid_high_x': len(data['longitude']),
+                    'grid_high_y': len(data['latitude']),
+                    'origin_x_label': 'longitude',
+                    'origin_y_label': 'latitude'
+                } if 'latitude' in axis_labels else {
+                    'grid_high_x': len(data['x']),
+                    'grid_high_y': len(data['y']),
+                    'origin_x_label': 'x',
+                    'origin_y_label': 'y'
+                }
+                grid_data = {
+                    'name': product,
+                    'origin_x': data.affine[3],
+                    'origin_y': data.affine[5],
+                    'x_resolution': data.affine[0],
+                    'y_resolution': data.affine[4]
+                }
+                grid_information.append({**grid_data, **labels})
+
+            grid_information = pd.DataFrame.from_dict(data=grid_information)
+
+            product_details = product_details.merge(grid_information, on='name')
+
             product_details['min_latitude'] = product_details.apply(
                 lambda row: extent_data[row['name']]['lat_extents'][0], axis=1)
             product_details['max_latitude'] = product_details.apply(
@@ -94,7 +135,8 @@ class CoverageOffering(models.Model):
 
             list_of_dicts = product_details[[
                 'name', 'description', 'label', 'min_latitude', 'max_latitude', 'min_longitude', 'max_longitude',
-                'start_time', 'end_time', 'crs'
+                'start_time', 'end_time', 'crs', 'origin_x', 'origin_y', 'origin_x_label', 'origin_y_label',
+                'x_resolution', 'y_resolution', 'grid_high_x', 'grid_high_y'
             ]].to_dict('records')
 
             for model in list_of_dicts:

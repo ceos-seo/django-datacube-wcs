@@ -8,7 +8,21 @@
         <gml:pos>{{ coverage_offering.get_min_point }}</gml:pos>
         <gml:pos>{{ coverage_offering.get_max_point }}</gml:pos>
       </gml:Envelope>
-      <gml:RectifiedGrid></gml:RectifiedGrid>
+      <gml:RectifiedGrid dimension="2">
+        <gml:limits>
+          <gml:GridEnvelope>
+            <gml:low>0 0</gml:low>
+            <gml:high>{{ coverage_offering.grid_high_x }} {{ coverage_offering.grid_high_y }}</gml:high>
+          </gml:GridEnvelope>
+        </gml:limits>
+        <gml:axisName>{{ coverage_offering.origin_x_label }}</gml:axisName>
+        <gml:axisName>{{ coverage_offering.origin_y_label }}</gml:axisName>
+        <gml:origin>
+          <gml:pos>{{ coverage_offering.origin_x }} {{ coverage_offering.origin_y }}</gml:pos>
+        </gml:origin>
+        <gml:offsetVector>{{ coverage_offering.x_resolution }} 0</gml:offsetVector>
+        <gml:offsetVector>0 {{ coverage_offering.y_resolution }}</gml:offsetVector>
+      </gml:RectifiedGrid>
     </spatialDomain>
     {% if coverage_offering.offer_temporal %}
       <temporalDomain>
